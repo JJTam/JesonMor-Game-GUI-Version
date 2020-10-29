@@ -2,8 +2,12 @@ package castle.comp3021.assignment.gui.views.panes;
 
 import castle.comp3021.assignment.gui.controllers.SceneManager;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+//import javafx.event.EventHandler;
+//import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import castle.comp3021.assignment.gui.views.BigButton;
@@ -16,11 +20,10 @@ public class MainMenuPane extends BasePane {
     private final Label title = new Label("Jeson Mor");
     @NotNull
     private final Button playButton = new BigButton("Play Game");
-
     @NotNull
     private final Button settingsButton = new BigButton("Settings / About ");
     @NotNull
-    private final Button validationButtion = new BigButton("Validation");
+    private final Button validationButton = new BigButton("Validation");
     @NotNull
     private final Button quitButton = new BigButton("Quit");
 
@@ -30,9 +33,16 @@ public class MainMenuPane extends BasePane {
         setCallbacks();
     }
 
+    /**
+     * Add components to corresponding containers
+     * Connects all components into the {@link BorderPane}.
+     */
     @Override
     void connectComponents() {
         // TODO
+        container.getChildren().setAll(title, playButton, settingsButton, validationButton, quitButton);
+        container.setAlignment(Pos.CENTER);
+        setCenter(container);
     }
 
     /**
@@ -48,12 +58,16 @@ public class MainMenuPane extends BasePane {
      * Hint:
      *      - playButton -> {@link GamePane}
      *      - settingsButton -> {@link SettingPane}
-     *      - validationButtion -> {@link ValidationPane}
+     *      - validationButton -> {@link ValidationPane}
      *      - quitButton -> quit the game
      */
     @Override
     void setCallbacks() {
         //TODO
+        playButton.setOnMouseClicked(mouseEvent -> SceneManager.getInstance().showPane(GamePane.class));
+        settingsButton.setOnMouseClicked(mouseEvent -> SceneManager.getInstance().showPane(SettingPane.class));
+        validationButton.setOnMouseClicked(mouseEvent -> SceneManager.getInstance().showPane(ValidationPane.class));
+        quitButton.setOnMouseClicked(mouseEvent -> Platform.exit());
     }
 
 }

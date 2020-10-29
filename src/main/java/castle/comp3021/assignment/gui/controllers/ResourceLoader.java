@@ -24,6 +24,7 @@ public class ResourceLoader {
         RES_PATH = Paths.get("src/main/resources");
     }
 
+
     /**
      * Retrieves a resource file from the resource directory.
      *
@@ -35,12 +36,11 @@ public class ResourceLoader {
     public static String getResource(@NotNull final String relativePath) {
         // TODO
         Path filePath = RES_PATH.resolve(relativePath);
-        File file = filePath.toFile();
-        if (file.exists()) {  // file cannot be found under the resource directory
+        File file = Paths.get(filePath.toUri()).toFile();
+        if (!file.exists()) {  // file cannot be found under the resource directory
             throw new ResourceNotFoundException(file.getName());
         }
-        return filePath.toAbsolutePath().toString();
-//        return file.getAbsolutePath();
+        return file.getAbsolutePath();
     }
 
     /**
@@ -58,8 +58,17 @@ public class ResourceLoader {
     @NotNull
     public static Image getImage(char typeChar) {
         // TODO
-        return null;
+        Image img = switch (typeChar) {
+            case 'K' -> new Image("src/main/resources/assets/images/whiteK.png");
+            case 'A' -> new Image("src/main/resources/assets/images/whiteA.png");
+            case 'k' -> new Image("src/main/resources/assets/images/blackK.png");
+            case 'a' -> new Image("src/main/resources/assets/images/blackA.png");
+            case 'c' -> new Image("src/main/resources/assets/images/center.png");
+            case 'l' -> new Image("src/main/resources/assets/images/lightBoard.png");
+            case 'd' -> new Image("src/main/resources/assets/images/darkBoard.png");
+            default -> throw new IllegalStateException("Unexpected value: " + typeChar);
+        };
+        return img;
     }
-
 
 }
