@@ -6,8 +6,11 @@ import castle.comp3021.assignment.gui.controllers.SceneManager;
 import castle.comp3021.assignment.gui.views.BigButton;
 import castle.comp3021.assignment.gui.views.BigVBox;
 import castle.comp3021.assignment.gui.views.NumberTextField;
+import castle.comp3021.assignment.protocol.Configuration;
+import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +46,7 @@ public class GamePane extends BasePane {
     private final BorderPane numMovesProtectionBox = new BorderPane(null, null, numMovesProtectionField, null, new Label("Protection Moves:"));
 
 
-    private FXJesonMor fxJesonMor = null;
+    private FXJesonMor fxJesonMor = new FXJesonMor(new Configuration());;
 
     public GamePane() {
         fillValues();
@@ -52,9 +55,15 @@ public class GamePane extends BasePane {
         setCallbacks();
     }
 
+    /**
+     * Add components to corresponding containers
+     * Connects all components into the {@link BorderPane}.
+     */
     @Override
     void connectComponents() {
         //TODO
+        container.getChildren().setAll(title, sizeBox, numMovesProtectionBox, isHumanPlayer1Button, isHumanPlayer2Button, useDefaultButton, playButton, returnButton);
+        setCenter(container);
     }
 
     @Override
@@ -76,6 +85,15 @@ public class GamePane extends BasePane {
     @Override
     void setCallbacks() {
         //TODO
+
+
+        returnButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                fillValues();
+                SceneManager.getInstance().showPane(MainMenuPane.class);
+            }
+        });
     }
 
     /**
@@ -95,6 +113,10 @@ public class GamePane extends BasePane {
      */
     void fillValues(){
         // TODO
+        sizeFiled.clear();
+        numMovesProtectionField.clear();
+        sizeFiled.replaceSelection(String.valueOf(fxJesonMor.getConfiguration().getSize()));
+        numMovesProtectionField.replaceSelection(String.valueOf(fxJesonMor.getConfiguration().getNumMovesProtection()));
     }
 
     /**

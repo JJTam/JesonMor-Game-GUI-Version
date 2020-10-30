@@ -2,7 +2,6 @@ package castle.comp3021.assignment.gui.views.panes;
 
 import castle.comp3021.assignment.gui.controllers.SceneManager;
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 //import javafx.event.EventHandler;
@@ -41,7 +40,6 @@ public class MainMenuPane extends BasePane {
     void connectComponents() {
         // TODO
         container.getChildren().setAll(title, playButton, settingsButton, validationButton, quitButton);
-        container.setAlignment(Pos.CENTER);
         setCenter(container);
     }
 
