@@ -1,4 +1,5 @@
 package castle.comp3021.assignment.gui.views.panes;
+
 import castle.comp3021.assignment.gui.DurationTimer;
 import castle.comp3021.assignment.gui.ViewConfig;
 import castle.comp3021.assignment.gui.controllers.AudioManager;
@@ -103,7 +104,9 @@ public class SettingPane extends BasePane {
      */
     private void fillValues() {
         // TODO
+        globalConfiguration.setSize(100);
     }
+
 
     /**
      * Switches back to the {@link MainMenuPane}.
