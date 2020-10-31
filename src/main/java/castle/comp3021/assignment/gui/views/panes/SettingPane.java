@@ -3,6 +3,7 @@ package castle.comp3021.assignment.gui.views.panes;
 import castle.comp3021.assignment.gui.DurationTimer;
 import castle.comp3021.assignment.gui.ViewConfig;
 import castle.comp3021.assignment.gui.controllers.AudioManager;
+import castle.comp3021.assignment.gui.controllers.SceneManager;
 import castle.comp3021.assignment.gui.views.BigButton;
 import castle.comp3021.assignment.gui.views.BigVBox;
 import castle.comp3021.assignment.gui.views.NumberTextField;
@@ -71,6 +72,11 @@ public class SettingPane extends BasePane {
     @Override
     void connectComponents() {
         //TODO
+        leftContainer.getChildren().addAll(title, sizeBox, numMovesProtectionBox, durationBox,
+                isHumanPlayer1Button, isHumanPlayer2Button, toggleSoundButton, saveButton, returnButton);
+        centerContainer.getChildren().add(infoText);
+        setLeft(leftContainer);
+        setCenter(centerContainer);
     }
 
     @Override
@@ -97,6 +103,11 @@ public class SettingPane extends BasePane {
     @Override
     void setCallbacks() {
         //TODO
+        returnButton.setOnMouseClicked(mouseEvent -> {
+            fillValues();  // set to default before returning
+            SceneManager.getInstance().showPane(MainMenuPane.class);
+        });
+
     }
 
     /**

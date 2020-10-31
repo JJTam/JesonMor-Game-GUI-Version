@@ -20,11 +20,8 @@ public class BigButton extends Button {
         super(text, graphic);
     }
 
+    // TODO: Add "big-button" style
     {
-        // TODO: Add "big-button" style
-//       setScaleX(1.2);
-//       setScaleY(1.2);
-       setStyle("-fx-font-size: 15; -fx-background-radius: 10, 10, 10, 10; -fx-height: 15;");
-
+        getStyleClass().add("big-button");
     }
 }

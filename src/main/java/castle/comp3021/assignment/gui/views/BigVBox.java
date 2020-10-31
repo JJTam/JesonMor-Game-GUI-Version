@@ -1,7 +1,7 @@
 package castle.comp3021.assignment.gui.views;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+//import javafx.geometry.Insets;
+//import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 
@@ -31,8 +31,6 @@ public class BigVBox extends VBox {
 
     {
         // TODO: Add "big-vbox" style
-        setAlignment(Pos.CENTER);
-        setSpacing(18);
-        setPadding(new Insets(25, 25, 25, 25));
+        getStyleClass().add("big-vbox");
     }
 }

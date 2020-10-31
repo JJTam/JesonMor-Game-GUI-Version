@@ -39,7 +39,7 @@ public class MainMenuPane extends BasePane {
     @Override
     void connectComponents() {
         // TODO
-        container.getChildren().setAll(title, playButton, settingsButton, validationButton, quitButton);
+        container.getChildren().addAll(title, playButton, settingsButton, validationButton, quitButton);
         setCenter(container);
     }
 

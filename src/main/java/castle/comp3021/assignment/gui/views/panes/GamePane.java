@@ -6,6 +6,7 @@ import castle.comp3021.assignment.gui.controllers.SceneManager;
 import castle.comp3021.assignment.gui.views.BigButton;
 import castle.comp3021.assignment.gui.views.BigVBox;
 import castle.comp3021.assignment.gui.views.NumberTextField;
+import castle.comp3021.assignment.player.ConsolePlayer;
 import castle.comp3021.assignment.player.RandomPlayer;
 import castle.comp3021.assignment.protocol.Configuration;
 import castle.comp3021.assignment.protocol.Player;
@@ -65,7 +66,8 @@ public class GamePane extends BasePane {
     @Override
     void connectComponents() {
         //TODO
-        container.getChildren().setAll(title, sizeBox, numMovesProtectionBox, isHumanPlayer1Button, isHumanPlayer2Button, useDefaultButton, playButton, returnButton);
+        container.getChildren().addAll(title, sizeBox, numMovesProtectionBox,
+                isHumanPlayer1Button, isHumanPlayer2Button, useDefaultButton, playButton, returnButton);
         setCenter(container);
     }
 
@@ -99,44 +101,44 @@ public class GamePane extends BasePane {
         useDefaultButton.setOnMouseClicked(mouseEvent -> fillValues());
 
         playButton.setOnMouseClicked(mouseEvent -> {
-            int size = 0, num = 0;
+            boolean validSize = false;
             try {
-                size = sizeFiled.getValue();
+                int size = sizeFiled.getValue();
+                validSize = true;
+                int num = numMovesProtectionField.getValue();
+                var validationMsg = validate(size, num);
+                if (validationMsg.isEmpty()) {  // no warning, can start the game
+                    Player player1 = null;
+                    Player player2 = null;
+                    if (isHumanPlayer1Button.getText().contains("Computer")) {
+                        player1 = new RandomPlayer("White");
+                    } else {
+                        player1 = new ConsolePlayer("White");
+                    }
+                    if (isHumanPlayer2Button.getText().contains("Human")) {
+                        player2 = new ConsolePlayer("Black");
+                    } else {
+                        player2 = new RandomPlayer("Black");
+                    }
+                    Player[] players = new Player[]{player1, player2};
+                    fxJesonMor = new FXJesonMor(new Configuration(size, players, num));
+                    startGame(fxJesonMor);
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setHeaderText("Validation failed");
+                    alert.setContentText(validationMsg.get());
+                    alert.showAndWait();
+                }
             } catch (NumberFormatException ex) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setHeaderText("Validation failed");
-                alert.setContentText(ViewConfig.MSG_BAD_SIZE_NUM);
-                alert.showAndWait();
-            }
-            try {
-                num = numMovesProtectionField.getValue();
-            } catch (NumberFormatException ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText("Validation failed");
-                alert.setContentText( ViewConfig.MSG_UPPERBOUND_SIZE_NUM);
-                alert.showAndWait();
-            }
-
-            var validationMsg = validate(size, num);
-            if (validationMsg.isEmpty()) {  // no warning, can start the game
-                Player player1 = null;
-                Player player2 = null;
-                if (isHumanPlayer1Button.getText().contains("Computer")) {
-                    player1 = new RandomPlayer("Black");
+                if (validSize) {
+                    alert.setContentText("Incorrect format of Protection Moves");
+                } else {
+                    alert.setContentText("Incorrect format of Size of Board");
                 }
-                if (isHumanPlayer2Button.getText().contains("Human")) {
-                    player2 = new RandomPlayer("White");
-                }
-                Player[] players = new Player[]{player1, player2};
-                fxJesonMor = new FXJesonMor(new Configuration(size, players, num));
-                startGame(fxJesonMor);
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText("Validation failed");
-                alert.setContentText(validationMsg.get());
                 alert.showAndWait();
             }
         });
