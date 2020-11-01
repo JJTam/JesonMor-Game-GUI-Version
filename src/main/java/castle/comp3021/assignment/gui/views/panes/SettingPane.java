@@ -9,6 +9,7 @@ import castle.comp3021.assignment.gui.views.BigVBox;
 import castle.comp3021.assignment.gui.views.NumberTextField;
 import castle.comp3021.assignment.gui.views.SideMenuVBox;
 import castle.comp3021.assignment.protocol.Configuration;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -77,6 +78,7 @@ public class SettingPane extends BasePane {
         centerContainer.getChildren().add(infoText);
         setLeft(leftContainer);
         setCenter(centerContainer);
+        fillValues();
     }
 
     @Override
@@ -96,18 +98,70 @@ public class SettingPane extends BasePane {
      *      - {@link Configuration#isFirstPlayerHuman()},
      *      - {@link Configuration#isSecondPlayerHuman()},
      *      - {@link Configuration#setFirstPlayerHuman(boolean)}
-     *      - {@link Configuration#isSecondPlayerHuman()},
+     *      - {@link Configuration#setSecondPlayerHuman(boolean)},
      *      - {@link AudioManager#setEnabled(boolean)},
      *      - {@link AudioManager#isEnabled()},
      */
     @Override
     void setCallbacks() {
         //TODO
-        returnButton.setOnMouseClicked(mouseEvent -> {
-            fillValues();  // set to default before returning
-            SceneManager.getInstance().showPane(MainMenuPane.class);
+        isHumanPlayer1Button.setOnAction(mouseEvent -> {
+            isHumanPlayer1Button.setText("Player 1: " + (isHumanPlayer1Button.getText().contains("Computer")? "Human" : "Computer"));
         });
 
+        isHumanPlayer2Button.setOnAction(mouseEvent -> {
+            isHumanPlayer2Button.setText("Player 2: " + (isHumanPlayer2Button.getText().contains("Computer")? "Human" : "Computer"));
+        });
+
+        toggleSoundButton.setOnAction(mouseEvent -> {
+            toggleSoundButton.setText("Sound FX: " + (toggleSoundButton.getText().contains("Enabled") ? "Disabled" : "Enabled"));
+        });
+
+        saveButton.setOnAction(mouseEvent -> {
+            boolean validSize = false;
+            boolean validNum = false;
+            try {
+                int size = sizeFiled.getValue();
+                validSize = true;
+                int num = numMovesProtectionField.getValue();
+                validNum = true;
+                int duration = durationField.getValue();
+                var validationMsg = validate(size, num, duration);
+                if (validationMsg.isEmpty()) {  // no warning, then modify the default values
+                    globalConfiguration.setSize(size);
+                    globalConfiguration.setNumMovesProtection(num);
+                    DurationTimer.setDefaultEachRound(duration);
+                    globalConfiguration.setFirstPlayerHuman(isHumanPlayer1Button.getText().contains("Human"));
+                    globalConfiguration.setSecondPlayerHuman(isHumanPlayer2Button.getText().contains("Human"));
+                    AudioManager.getInstance().setEnabled(toggleSoundButton.getText().contains("Enable"));
+                    returnToMainMenu(true);
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setHeaderText("Validation failed");
+                    alert.setContentText(validationMsg.get());
+                    alert.showAndWait();
+                }
+            } catch (NumberFormatException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Validation failed");
+                if (validSize && !validNum) {
+                    alert.setContentText("Incorrect format of Protection Moves");
+                }
+                else if (validNum) {
+                    alert.setContentText("Incorrect format of Max Duration");
+                }
+                else {
+                    alert.setContentText("Incorrect format of Size of Board");
+                }
+                alert.showAndWait();
+            }
+        });
+
+        returnButton.setOnAction(mouseEvent -> {
+            returnToMainMenu(false);
+        });
     }
 
     /**
@@ -115,7 +169,12 @@ public class SettingPane extends BasePane {
      */
     private void fillValues() {
         // TODO
-        globalConfiguration.setSize(100);
+        isHumanPlayer1Button.setText("Player 1: " + (globalConfiguration.isFirstPlayerHuman() ? "Human" : "Computer"));
+        isHumanPlayer2Button.setText("Player 2: " + (globalConfiguration.isSecondPlayerHuman() ? "Human" : "Computer"));
+        toggleSoundButton.setText("Sound FX: " + (AudioManager.getInstance().isEnabled() ? "Enabled" : "Disabled"));
+        sizeFiled.setText(String.valueOf(globalConfiguration.getSize()));
+        numMovesProtectionField.setText(String.valueOf(globalConfiguration.getNumMovesProtection()));
+        durationField.setText(String.valueOf(DurationTimer.getDefaultEachRound()));
     }
 
 
@@ -126,6 +185,12 @@ public class SettingPane extends BasePane {
      */
     private void returnToMainMenu(final boolean writeBack) {
         //TODO
+        if (writeBack) {  // save button clicked
+            final var gamePane = SceneManager.getInstance().<GamePane>getPane(GamePane.class);
+            gamePane.fillValues(); // update default of gamePane before returning
+        }
+        fillValues();  // update default of settingPane before returning
+        SceneManager.getInstance().showPane(MainMenuPane.class);
     }
 
     /**
@@ -139,6 +204,21 @@ public class SettingPane extends BasePane {
      */
     public static Optional<String> validate(int size, int numProtection, int duration) {
         //TODO
-        return null;
+        if (size < 3) {
+            return Optional.of(ViewConfig.MSG_BAD_SIZE_NUM);
+        }
+        if (size % 2 != 1) {
+            return Optional.of(ViewConfig.MSG_ODD_SIZE_NUM);
+        }
+        if (size > 26) {
+            return Optional.of(ViewConfig.MSG_UPPERBOUND_SIZE_NUM);
+        }
+        if (numProtection < 0) {
+            return Optional.of(ViewConfig.MSG_NEG_PROT);
+        }
+        if (duration <= 0) {
+            return Optional.of(ViewConfig.MSG_NEG_DURATION);
+        }
+        return Optional.empty();
     }
 }

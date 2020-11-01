@@ -2,6 +2,7 @@ package castle.comp3021.assignment.protocol;
 
 import castle.comp3021.assignment.piece.Archer;
 import castle.comp3021.assignment.piece.Knight;
+import castle.comp3021.assignment.player.ConsolePlayer;
 import castle.comp3021.assignment.player.RandomPlayer;
 import castle.comp3021.assignment.protocol.exception.InvalidConfigurationError;
 
@@ -181,18 +182,18 @@ public class Configuration implements Cloneable {
      * Check whether the first player is human player or not
      * @return boolean
      */
-    public boolean isFirstPlayerHuman(){
+    public boolean isFirstPlayerHuman() {
         //TODO
-        return false;
+        return getPlayers()[0] instanceof ConsolePlayer;
     }
 
     /**
      * Check whether the second player is human player or not
      * @return boolean
      */
-    public boolean isSecondPlayerHuman(){
+    public boolean isSecondPlayerHuman() {
         //TODO
-        return false;
+        return getPlayers()[1] instanceof ConsolePlayer;
     }
 
     /**
@@ -201,6 +202,13 @@ public class Configuration implements Cloneable {
      */
     public void setFirstPlayerHuman(boolean isHuman){
         //TODO
+        if (isHuman) {
+            this.players[0] = new ConsolePlayer("White");
+        }
+        else {
+            this.players[0] = new RandomPlayer("White");
+        }
+
     }
 
     /**
@@ -209,6 +217,12 @@ public class Configuration implements Cloneable {
      */
     public void setSecondPlayerHuman(boolean isHuman){
         //TODO
+        if (isHuman) {
+            this.players[1] = new ConsolePlayer("Black");
+        }
+        else {
+            this.players[1] = new RandomPlayer("Black");
+        }
     }
 
 

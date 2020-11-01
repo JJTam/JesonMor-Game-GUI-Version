@@ -90,17 +90,17 @@ public class GamePane extends BasePane {
     @Override
     void setCallbacks() {
         //TODO
-        isHumanPlayer1Button.setOnMouseClicked(mouseEvent -> {
+        isHumanPlayer1Button.setOnAction(mouseEvent -> {
             isHumanPlayer1Button.setText("Player 1: " + (isHumanPlayer1Button.getText().contains("Computer")? "Human" : "Computer"));
         });
 
-        isHumanPlayer2Button.setOnMouseClicked(mouseEvent -> {
+        isHumanPlayer2Button.setOnAction(mouseEvent -> {
             isHumanPlayer2Button.setText("Player 2: " + (isHumanPlayer2Button.getText().contains("Computer")? "Human" : "Computer"));
         });
 
-        useDefaultButton.setOnMouseClicked(mouseEvent -> fillValues());
+        useDefaultButton.setOnAction(mouseEvent -> fillValues());
 
-        playButton.setOnMouseClicked(mouseEvent -> {
+        playButton.setOnAction(mouseEvent -> {
             boolean validSize = false;
             try {
                 int size = sizeFiled.getValue();
@@ -143,7 +143,7 @@ public class GamePane extends BasePane {
             }
         });
 
-        returnButton.setOnMouseClicked(mouseEvent -> {
+        returnButton.setOnAction(mouseEvent -> {
             fillValues();  // set to default before returning
             SceneManager.getInstance().showPane(MainMenuPane.class);
         });
