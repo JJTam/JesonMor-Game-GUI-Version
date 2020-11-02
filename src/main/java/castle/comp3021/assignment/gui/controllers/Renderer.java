@@ -1,5 +1,6 @@
 package castle.comp3021.assignment.gui.controllers;
 
+import castle.comp3021.assignment.gui.ViewConfig;
 import castle.comp3021.assignment.protocol.Piece;
 import castle.comp3021.assignment.protocol.Place;
 import javafx.scene.canvas.Canvas;
@@ -74,6 +75,24 @@ public class Renderer {
      */
     public static void renderChessBoard(@NotNull Canvas canvas, int boardSize, Place centerPlace){
         //TODO
+//        Image lightBoardTile = new Image("file:" + ResourceLoader.getResource("assets/images/lightBoard.png"));
+//        System.out.println(ResourceLoader.getResource("assets/images/lightBoard.png"));
+//        Image darkBoardTile = new Image("file:" + ResourceLoader.getResource("assets/images/darkBoard.png"));
+        Image lightBoardTile = ResourceLoader.getImage('l');
+        Image darkBoardTile = ResourceLoader.getImage('d');
+        canvas.setHeight(boardSize * ViewConfig.PIECE_SIZE);
+        canvas.setWidth(boardSize * ViewConfig.PIECE_SIZE);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                if ((i + j) % 2 == 0) {
+                    gc.drawImage(lightBoardTile, i * ViewConfig.PIECE_SIZE, j * ViewConfig.PIECE_SIZE);
+                } else {
+                    gc.drawImage(darkBoardTile,i * ViewConfig.PIECE_SIZE, j * ViewConfig.PIECE_SIZE);
+                }
+            }
+        }
+
     }
 
     /**

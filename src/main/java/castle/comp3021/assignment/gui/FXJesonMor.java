@@ -27,9 +27,13 @@ public class FXJesonMor extends JesonMor {
      *     - Also consider durationTimer
      * @param configuration
      */
-    public FXJesonMor(Configuration configuration){
+    public FXJesonMor(Configuration configuration) {
         //TODO
+        this.configuration = configuration;
+        this.configuration.setAllInitialPieces();
+//        durationTimer.registerTickCallback();
     }
+
 
     /**
      * This method can be used in {@link castle.comp3021.assignment.gui.views.panes.GamePlayPane}
@@ -37,8 +41,11 @@ public class FXJesonMor extends JesonMor {
      * and {@link Renderer#renderPieces(Canvas, Piece[][])}
      * @param canvas render the given canvas
      */
-    public void renderBoard(@NotNull Canvas canvas){
+    public void renderBoard(@NotNull Canvas canvas) {
         //TODO
+        Renderer.renderChessBoard(canvas, this.configuration.getSize(), this.configuration.getCentralPlace());
+        Renderer.renderPieces(canvas, this.configuration.getInitialBoard());
+
     }
 
     /**
@@ -65,15 +72,15 @@ public class FXJesonMor extends JesonMor {
         durationTimer.stop();
     }
 
-    public StringProperty getCurPlayerName(){
+    public StringProperty getCurPlayerName() {
         return currentPlayerNameProperty;
     }
 
-    public IntegerProperty getPlayer1Score(){
+    public IntegerProperty getPlayer1Score() {
         return scorePlayer1Property;
     }
 
-    public IntegerProperty getPlayer2Score(){
+    public IntegerProperty getPlayer2Score() {
         return scorePlayer2Property;
     }
 

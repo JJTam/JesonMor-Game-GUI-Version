@@ -229,7 +229,7 @@ public class Configuration implements Cloneable {
     /**
      * set initial pieces
      */
-    public void setAllInitialPieces(){
+    public void setAllInitialPieces() {
         Player whitePlayer = this.getPlayers()[1];
         Player blackPlayer = this.getPlayers()[0];
 

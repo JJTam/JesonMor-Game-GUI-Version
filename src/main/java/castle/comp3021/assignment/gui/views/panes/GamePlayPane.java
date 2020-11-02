@@ -3,14 +3,14 @@ package castle.comp3021.assignment.gui.views.panes;
 import castle.comp3021.assignment.gui.DurationTimer;
 import castle.comp3021.assignment.gui.FXJesonMor;
 import castle.comp3021.assignment.gui.ViewConfig;
+import castle.comp3021.assignment.gui.controllers.SceneManager;
 import castle.comp3021.assignment.gui.views.BigButton;
 import castle.comp3021.assignment.gui.views.BigVBox;
 import castle.comp3021.assignment.gui.views.GameplayInfoPane;
 import castle.comp3021.assignment.gui.views.SideMenuVBox;
 import castle.comp3021.assignment.protocol.*;
 import castle.comp3021.assignment.gui.controllers.Renderer;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.*;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -19,6 +19,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 /**
  * This class implements the main playing function of Jeson Mor
@@ -85,6 +87,7 @@ public class GamePlayPane extends BasePane {
      *      - other global variable you want to note down.
      */
     // TODO
+    private FXJesonMor fxJesonMor = null;
 
 
     public GamePlayPane() {
@@ -99,6 +102,12 @@ public class GamePlayPane extends BasePane {
     @Override
     void connectComponents() {
         //TODO
+        topBar.getChildren().add(title);
+        topBar.setAlignment(Pos.TOP_CENTER);
+        leftContainer.getChildren().addAll(parameterText, historyLabel, scrollPane, startButton, restartButton, returnButton);
+        setTop(topBar);
+        setLeft(leftContainer);
+        setCenter(centerContainer);
     }
 
     /**
@@ -118,6 +127,10 @@ public class GamePlayPane extends BasePane {
     @Override
     void setCallbacks() {
         //TODO
+        startButton.setOnAction(mouseEvent -> startGame());
+        restartButton.setOnAction(mouseEvent -> onRestartButtonClick());
+        returnButton.setOnAction(mouseEvent -> doQuitToMenuAction());
+
     }
 
     /**
@@ -132,19 +145,36 @@ public class GamePlayPane extends BasePane {
      */
     void initializeGame(@NotNull FXJesonMor fxJesonMor) {
         //TODO
+        this.fxJesonMor = fxJesonMor;
+        this.fxJesonMor.renderBoard(gamePlayCanvas);
+        centerContainer.getChildren().clear();
+        centerContainer.getChildren().addAll(gamePlayCanvas,
+                infoPane = new GameplayInfoPane(this.fxJesonMor.getPlayer1Score(),
+                                                this.fxJesonMor.getPlayer1Score(),
+                                                this.fxJesonMor.getCurPlayerName(),
+                                                ticksElapsed)
+        );
+        parameterText.setText("Parameters:\n" + "\nSize of board: " + this.fxJesonMor.getConfiguration().getSize()
+                            + "\nNum of protection moves: " + this.fxJesonMor.getConfiguration().getNumMovesProtection()
+                            + "\nPlayer White" + (this.fxJesonMor.getConfiguration().isFirstPlayerHuman() ? "(human)" : "(computer)")
+                            + "\nPlayer Black" + (this.fxJesonMor.getConfiguration().isSecondPlayerHuman() ? "(human)" : "(computer)")
+                            + "\n"
+        );
+        startButton.setDisable(false);
+        restartButton.setDisable(true);
     }
 
     /**
      * enable canvas clickable
      */
-    private void enableCanvas(){
+    private void enableCanvas() {
         gamePlayCanvas.setDisable(false);
     }
 
     /**
      * disable canvas clickable
      */
-    private void disnableCanvas(){
+    private void disnableCanvas() {
         gamePlayCanvas.setDisable(true);
     }
 
@@ -165,14 +195,19 @@ public class GamePlayPane extends BasePane {
      */
     public void startGame() {
         //TODO
+
+        startButton.setDisable(true);
+        restartButton.setDisable(false);
     }
 
     /**
      * Restart the game
      * Hint: end the current game and start a new game
      */
-    private void onRestartButtonClick(){
+    private void onRestartButtonClick() {
         //TODO
+        endGame();
+        initializeGame(fxJesonMor);
     }
 
     /**
@@ -184,7 +219,7 @@ public class GamePlayPane extends BasePane {
      *      - Refer to {@link GamePlayPane#toBoardCoordinate(double)} for help
      * @param event mouse click
      */
-    private void onCanvasPressed(MouseEvent event){
+    private void onCanvasPressed(MouseEvent event) {
         // TODO
     }
 
@@ -195,7 +230,7 @@ public class GamePlayPane extends BasePane {
      *      - Refer to {@link GamePlayPane#toBoardCoordinate(double)} for help
      * @param event mouse position
      */
-    private void onCanvasDragged(MouseEvent event){
+    private void onCanvasDragged(MouseEvent event) {
         //TODO
     }
 
@@ -207,14 +242,14 @@ public class GamePlayPane extends BasePane {
      *      - If the piece has been successfully moved, play place.mp3 here (or somewhere else)
      * @param event mouse release
      */
-    private void onCanvasReleased(MouseEvent event){
+    private void onCanvasReleased(MouseEvent event) {
         // TODO
     }
 
     /**
      * Creates a popup which tells the winner
      */
-    private void createWinPopup(String winnerName){
+    private void createWinPopup(String winnerName) {
         //TODO
     }
 
@@ -226,7 +261,7 @@ public class GamePlayPane extends BasePane {
      *      - Export Move Records: Using {@link castle.comp3021.assignment.protocol.io.Serializer} to write game's configuration to file
      *      - Return to Main menu, using {@link GamePlayPane#doQuitToMenuAction()}
      */
-    private void checkWinner(){
+    private void checkWinner() {
         //TODO
     }
 
@@ -234,7 +269,7 @@ public class GamePlayPane extends BasePane {
      * Popup a window showing invalid move information
      * @param errorMsg error string stating why this move is invalid
      */
-    private void showInvalidMoveMsg(String errorMsg){
+    private void showInvalidMoveMsg(String errorMsg) {
         //TODO
     }
 
@@ -246,17 +281,25 @@ public class GamePlayPane extends BasePane {
      *      - ContentText: Game progress will be lost.
      *      - Buttons: CANCEL and OK
      *  If click OK, then refer to {@link GamePlayPane#doQuitToMenu()}
-     *  If click Cancle, than do nothing.
+     *  If click Cancel, than do nothing.
      */
     private void doQuitToMenuAction() {
         // TODO
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm");
+        alert.setHeaderText("Return to menu?");
+        alert.setContentText("Game progress will be lost.");
+        var cancelButton = alert.showAndWait().orElse(ButtonType.OK);
+        if (cancelButton == ButtonType.OK) {
+            doQuitToMenu();
+        }
     }
 
     /**
      * Update the move to the historyFiled
      * @param move the last move that has been made
      */
-    private void updateHistoryField(Move move){
+    private void updateHistoryField(Move move) {
         //TODO
     }
 
@@ -266,6 +309,10 @@ public class GamePlayPane extends BasePane {
      */
     private void doQuitToMenu() {
         // TODO
+        final var gamePane = SceneManager.getInstance().<GamePane>getPane(GamePane.class);
+        gamePane.fillValues(); // update default of gamePane before returning
+        endGame();
+        SceneManager.getInstance().showPane(MainMenuPane.class);
     }
 
     /**
@@ -275,7 +322,7 @@ public class GamePlayPane extends BasePane {
      * @param x coordinate of mouse click
      * @return the coordinate on board
      */
-    private int toBoardCoordinate(double x){
+    private int toBoardCoordinate(double x) {
         // TODO
         return 0;
     }
@@ -290,5 +337,9 @@ public class GamePlayPane extends BasePane {
      */
     private void endGame() {
         //TODO
+        this.historyFiled.setText(null);
+        this.gamePlayCanvas.getGraphicsContext2D().clearRect(0, 0, this.gamePlayCanvas.getWidth(), this.gamePlayCanvas.getHeight());
+        startButton.setDisable(false);
+        restartButton.setDisable(true);
     }
 }

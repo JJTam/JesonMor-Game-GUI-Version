@@ -59,13 +59,13 @@ public class ResourceLoader {
     public static Image getImage(char typeChar) {
         // TODO
         Image img = switch (typeChar) {
-            case 'K' -> new Image("src/main/resources/assets/images/whiteK.png");
-            case 'A' -> new Image("src/main/resources/assets/images/whiteA.png");
-            case 'k' -> new Image("src/main/resources/assets/images/blackK.png");
-            case 'a' -> new Image("src/main/resources/assets/images/blackA.png");
-            case 'c' -> new Image("src/main/resources/assets/images/center.png");
-            case 'l' -> new Image("src/main/resources/assets/images/lightBoard.png");
-            case 'd' -> new Image("src/main/resources/assets/images/darkBoard.png");
+            case 'K' -> new Image("file:" + getResource("assets/images/whiteK.png"));
+            case 'A' -> new Image("file:" + getResource("assets/images/whiteA.png"));
+            case 'k' -> new Image("file:" + getResource("assets/images/blackK.png"));
+            case 'a' -> new Image("file:" + getResource("assets/images/blackA.png"));
+            case 'c' -> new Image("file:" + getResource("assets/images/center.png"));
+            case 'l' -> new Image("file:" + getResource("assets/images/lightBoard.png"));
+            case 'd' -> new Image("file:" + getResource("assets/images/darkBoard.png"));
             default -> throw new IllegalStateException("Unexpected value: " + typeChar);
         };
         return img;

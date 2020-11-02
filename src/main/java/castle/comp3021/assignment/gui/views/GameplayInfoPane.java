@@ -4,7 +4,6 @@ import castle.comp3021.assignment.gui.DurationTimer;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.Label;
-
 import java.time.Duration;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -25,9 +24,13 @@ public class GameplayInfoPane extends BigVBox {
      * @param curPlayer current player name
      * @param ticksElapsed time passed in seconds
      */
-    public GameplayInfoPane(IntegerProperty score1Property, IntegerProperty score2Property, StringProperty curPlayer,
-                            IntegerProperty ticksElapsed) {
+    public GameplayInfoPane(IntegerProperty score1Property, IntegerProperty score2Property,
+                            StringProperty curPlayer, IntegerProperty ticksElapsed) {
         //TODO
+
+
+        bindTo(score1Property, score2Property, curPlayer, ticksElapsed);
+
     }
 
     /**
@@ -69,5 +72,11 @@ public class GameplayInfoPane extends BigVBox {
     private void bindTo(IntegerProperty score1Property, IntegerProperty score2Property, StringProperty curPlayer,
                         IntegerProperty ticksElapsed) {
         // TODO
+        this.getChildren().addAll(score1Label, score2Label, timerLabel, curPlayerLabel);
+        score1Label.setText("Score of player 1: " + score1Property.getValue());
+        score2Label.setText("Score of player 2: " + score2Property.getValue());
+        timerLabel.setText("Time: " + countdownFormat(ticksElapsed.getValue()));
+        curPlayerLabel.setText("Current player: " + curPlayer.getValue());
+
     }
 }
