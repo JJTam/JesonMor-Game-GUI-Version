@@ -2,6 +2,7 @@ package castle.comp3021.assignment.gui.controllers;
 
 import castle.comp3021.assignment.gui.ViewConfig;
 import castle.comp3021.assignment.gui.views.panes.*;
+import castle.comp3021.assignment.piece.VacantRule;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +69,8 @@ public class SceneManager {
      */
     private SceneManager() {
         //TODO
-        String cssFile = new File("src/main/resources/assets/styles/styles.css").toURI().toString();
+//        String cssFile = new File("src/main/resources/assets/styles/styles.css").toURI().toString();
+        String cssFile = ViewConfig.CSS_STYLES_PATH;
         mainMenuScene.getStylesheets().add(cssFile);
         settingsScene.getStylesheets().add(cssFile);
         gameplayScene.getStylesheets().add(cssFile);

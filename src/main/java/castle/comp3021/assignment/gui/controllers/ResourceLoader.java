@@ -36,11 +36,11 @@ public class ResourceLoader {
     public static String getResource(@NotNull final String relativePath) {
         // TODO
         Path filePath = RES_PATH.resolve(relativePath);
-        File file = Paths.get(filePath.toUri()).toFile();
+        File file = filePath.toFile();
         if (!file.exists()) {  // file cannot be found under the resource directory
             throw new ResourceNotFoundException(file.getName());
         }
-        return file.getAbsolutePath();
+        return filePath.toAbsolutePath().toFile().toURI().toString();
     }
 
     /**
@@ -58,17 +58,16 @@ public class ResourceLoader {
     @NotNull
     public static Image getImage(char typeChar) {
         // TODO
-        Image img = switch (typeChar) {
-            case 'K' -> new Image("file:" + getResource("assets/images/whiteK.png"));
-            case 'A' -> new Image("file:" + getResource("assets/images/whiteA.png"));
-            case 'k' -> new Image("file:" + getResource("assets/images/blackK.png"));
-            case 'a' -> new Image("file:" + getResource("assets/images/blackA.png"));
-            case 'c' -> new Image("file:" + getResource("assets/images/center.png"));
-            case 'l' -> new Image("file:" + getResource("assets/images/lightBoard.png"));
-            case 'd' -> new Image("file:" + getResource("assets/images/darkBoard.png"));
+        return switch (typeChar) {
+            case 'K' -> new Image(getResource("assets/images/whiteK.png"));
+            case 'A' -> new Image(getResource("assets/images/whiteA.png"));
+            case 'k' -> new Image(getResource("assets/images/blackK.png"));
+            case 'a' -> new Image(getResource("assets/images/blackA.png"));
+            case 'c' -> new Image(getResource("assets/images/center.png"));
+            case 'l' -> new Image(getResource("assets/images/lightBoard.png"));
+            case 'd' -> new Image(getResource("assets/images/darkBoard.png"));
             default -> throw new IllegalStateException("Unexpected value: " + typeChar);
         };
-        return img;
     }
 
 }

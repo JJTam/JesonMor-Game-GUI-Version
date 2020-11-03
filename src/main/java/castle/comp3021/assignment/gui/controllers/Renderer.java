@@ -1,6 +1,7 @@
 package castle.comp3021.assignment.gui.controllers;
 
 import castle.comp3021.assignment.gui.ViewConfig;
+import castle.comp3021.assignment.protocol.Configuration;
 import castle.comp3021.assignment.protocol.Piece;
 import castle.comp3021.assignment.protocol.Place;
 import javafx.scene.canvas.Canvas;
@@ -75,11 +76,9 @@ public class Renderer {
      */
     public static void renderChessBoard(@NotNull Canvas canvas, int boardSize, Place centerPlace){
         //TODO
-//        Image lightBoardTile = new Image("file:" + ResourceLoader.getResource("assets/images/lightBoard.png"));
-//        System.out.println(ResourceLoader.getResource("assets/images/lightBoard.png"));
-//        Image darkBoardTile = new Image("file:" + ResourceLoader.getResource("assets/images/darkBoard.png"));
         Image lightBoardTile = ResourceLoader.getImage('l');
         Image darkBoardTile = ResourceLoader.getImage('d');
+        Image centerTile = ResourceLoader.getImage('c');
         canvas.setHeight(boardSize * ViewConfig.PIECE_SIZE);
         canvas.setWidth(boardSize * ViewConfig.PIECE_SIZE);
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -90,9 +89,11 @@ public class Renderer {
                 } else {
                     gc.drawImage(darkBoardTile,i * ViewConfig.PIECE_SIZE, j * ViewConfig.PIECE_SIZE);
                 }
+                if (i == centerPlace.x() && j == centerPlace.y()) {
+                    gc.drawImage(centerTile, i * ViewConfig.PIECE_SIZE, j * ViewConfig.PIECE_SIZE);
+                }
             }
         }
-
     }
 
     /**
@@ -102,6 +103,14 @@ public class Renderer {
      */
     public static void renderPieces(@NotNull Canvas canvas, @NotNull Piece[][] board) {
         //TODO
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        for (int i = 0; i < board.length; i++) {
+            gc.drawImage(board[i][0].getImageRep().image, i * ViewConfig.PIECE_SIZE, 0);
+        }
+        for (int j = 0; j < board.length; j++) {
+            gc.drawImage(board[j][board.length - 1].getImageRep().image, j * ViewConfig.PIECE_SIZE,
+                    canvas.getHeight() - ViewConfig.PIECE_SIZE);
+        }
     }
 
 }

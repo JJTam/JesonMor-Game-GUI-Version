@@ -43,6 +43,7 @@ public class ConsolePlayer extends Player {
         return move;
     }
 
+
     private static Place parsePlace(String str) {
         if (str.length() < 2) {
             return null;

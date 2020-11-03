@@ -8,9 +8,11 @@ import castle.comp3021.assignment.gui.views.BigButton;
 import castle.comp3021.assignment.gui.views.BigVBox;
 import castle.comp3021.assignment.gui.views.GameplayInfoPane;
 import castle.comp3021.assignment.gui.views.SideMenuVBox;
+import castle.comp3021.assignment.player.ConsolePlayer;
 import castle.comp3021.assignment.protocol.*;
 import castle.comp3021.assignment.gui.controllers.Renderer;
 import javafx.beans.property.*;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -87,7 +89,10 @@ public class GamePlayPane extends BasePane {
      *      - other global variable you want to note down.
      */
     // TODO
-    private FXJesonMor fxJesonMor = null;
+    private FXJesonMor fxJesonMor = null;  // store this JesonMor
+    private Configuration configuration = null; // store the passed configuration
+    private Player winner = null;
+    private Player currentPlayer = null;
 
 
     public GamePlayPane() {
@@ -130,7 +135,6 @@ public class GamePlayPane extends BasePane {
         startButton.setOnAction(mouseEvent -> startGame());
         restartButton.setOnAction(mouseEvent -> onRestartButtonClick());
         returnButton.setOnAction(mouseEvent -> doQuitToMenuAction());
-
     }
 
     /**
@@ -146,13 +150,13 @@ public class GamePlayPane extends BasePane {
     void initializeGame(@NotNull FXJesonMor fxJesonMor) {
         //TODO
         this.fxJesonMor = fxJesonMor;
+        this.configuration = fxJesonMor.getConfiguration();
         this.fxJesonMor.renderBoard(gamePlayCanvas);
-        centerContainer.getChildren().clear();
         centerContainer.getChildren().addAll(gamePlayCanvas,
-                infoPane = new GameplayInfoPane(this.fxJesonMor.getPlayer1Score(),
-                                                this.fxJesonMor.getPlayer1Score(),
-                                                this.fxJesonMor.getCurPlayerName(),
-                                                ticksElapsed)
+                                            infoPane = new GameplayInfoPane(this.fxJesonMor.getPlayer1Score(),
+                                                                            this.fxJesonMor.getPlayer2Score(),
+                                                                            this.fxJesonMor.getCurPlayerName(),
+                                                                            ticksElapsed)
         );
         parameterText.setText("Parameters:\n" + "\nSize of board: " + this.fxJesonMor.getConfiguration().getSize()
                             + "\nNum of protection moves: " + this.fxJesonMor.getConfiguration().getNumMovesProtection()
@@ -174,7 +178,7 @@ public class GamePlayPane extends BasePane {
     /**
      * disable canvas clickable
      */
-    private void disnableCanvas() {
+    private void disableCanvas() {
         gamePlayCanvas.setDisable(true);
     }
 
@@ -195,9 +199,44 @@ public class GamePlayPane extends BasePane {
      */
     public void startGame() {
         //TODO
-
         startButton.setDisable(true);
         restartButton.setDisable(false);
+        winner = null;
+        int numMoves = 0;
+        var board = this.configuration.getInitialBoard();
+        while (winner == null) {
+            currentPlayer = this.configuration.getPlayers()[numMoves % this.configuration.getPlayers().length];
+            var availableMoves = this.fxJesonMor.getAvailableMoves(currentPlayer);
+            if (availableMoves.length <= 0) {
+                showInvalidMoveMsg("No available moves for the player " + currentPlayer.getName());
+                if (this.configuration.getPlayers()[0].getScore() < this.configuration.getPlayers()[1].getScore()) {
+                    winner = this.configuration.getPlayers()[0];
+                } else if (this.configuration.getPlayers()[0].getScore() > this.configuration.getPlayers()[1].getScore()) {
+                    winner = this.configuration.getPlayers()[1];
+                } else {
+                    winner = currentPlayer;
+                }
+            } else {
+                if (currentPlayer instanceof ConsolePlayer) {  // human player
+                    enableCanvas();
+                    this.gamePlayCanvas.setOnMousePressed(this::onCanvasPressed);
+                } else {  // computer
+                    disableCanvas();
+                    var move = currentPlayer.nextMove(this.fxJesonMor, availableMoves);
+                    var movedPiece = this.fxJesonMor.getPiece(move.getSource());
+                    // make move
+                    this.fxJesonMor.movePiece(move);
+                    this.fxJesonMor.updateScore(currentPlayer, movedPiece, move);
+                }
+                System.out.println(numMoves);
+                numMoves++;
+
+            }
+
+            if (winner != null) {
+                createWinPopup(winner.getName());
+            }
+        }
     }
 
     /**
@@ -207,7 +246,7 @@ public class GamePlayPane extends BasePane {
     private void onRestartButtonClick() {
         //TODO
         endGame();
-        initializeGame(fxJesonMor);
+        initializeGame(new FXJesonMor(this.configuration));
     }
 
     /**
@@ -221,6 +260,8 @@ public class GamePlayPane extends BasePane {
      */
     private void onCanvasPressed(MouseEvent event) {
         // TODO
+        System.out.println("Mouse Press");
+
     }
 
     /**
@@ -251,6 +292,8 @@ public class GamePlayPane extends BasePane {
      */
     private void createWinPopup(String winnerName) {
         //TODO
+        System.out.println(winnerName);
+
     }
 
 
@@ -263,6 +306,8 @@ public class GamePlayPane extends BasePane {
      */
     private void checkWinner() {
         //TODO
+        winner = currentPlayer;
+
     }
 
     /**
@@ -271,6 +316,11 @@ public class GamePlayPane extends BasePane {
      */
     private void showInvalidMoveMsg(String errorMsg) {
         //TODO
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Invalid move");
+        alert.setHeaderText("Your movement is invalid due to following reason(s):");
+        alert.setContentText(errorMsg);
+        alert.showAndWait();
     }
 
     /**
@@ -337,7 +387,9 @@ public class GamePlayPane extends BasePane {
      */
     private void endGame() {
         //TODO
+        this.centerContainer.getChildren().clear();
         this.historyFiled.setText(null);
+        this.parameterText.setText(null);
         this.gamePlayCanvas.getGraphicsContext2D().clearRect(0, 0, this.gamePlayCanvas.getWidth(), this.gamePlayCanvas.getHeight());
         startButton.setDisable(false);
         restartButton.setDisable(true);

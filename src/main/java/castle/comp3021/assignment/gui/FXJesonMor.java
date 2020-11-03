@@ -29,9 +29,9 @@ public class FXJesonMor extends JesonMor {
      */
     public FXJesonMor(Configuration configuration) {
         //TODO
-        this.configuration = configuration;
-        this.configuration.setAllInitialPieces();
-//        durationTimer.registerTickCallback();
+        super(configuration);
+        this.getConfiguration().setAllInitialPieces();
+        durationTimer = new DurationTimer();
     }
 
 
@@ -45,8 +45,9 @@ public class FXJesonMor extends JesonMor {
         //TODO
         Renderer.renderChessBoard(canvas, this.configuration.getSize(), this.configuration.getCentralPlace());
         Renderer.renderPieces(canvas, this.configuration.getInitialBoard());
-
     }
+
+
 
     /**
      * Adds a handler to be run when a tick elapses.

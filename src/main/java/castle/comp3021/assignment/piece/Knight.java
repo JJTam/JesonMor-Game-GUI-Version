@@ -7,6 +7,8 @@ import castle.comp3021.assignment.protocol.Place;
 import castle.comp3021.assignment.protocol.Player;
 import castle.comp3021.assignment.gui.controllers.Renderer;
 import castle.comp3021.assignment.gui.controllers.ResourceLoader;
+import castle.comp3021.assignment.protocol.exception.InvalidConfigurationError;
+import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -19,9 +21,7 @@ import java.util.ArrayList;
  */
 public class Knight extends Piece {
     public Knight(Player player) {
-        super(
-                player
-        );
+        super(player);
     }
 
     @Override
@@ -33,10 +33,8 @@ public class Knight extends Piece {
     public Move[] getAvailableMoves(Game game, Place source) {
         var moves = new ArrayList<Move>();
         var steps = new int[]{1, -1, 2, -2};
-        for (var stepX :
-                steps) {
-            for (var stepY :
-                    steps) {
+        for (var stepX : steps) {
+            for (var stepY : steps) {
                 var destination = new Place(source.x() + stepX, source.y() + stepY);
                 if (Math.abs(destination.x() - source.x()) + Math.abs(destination.y() - source.y()) == 3) {
                     moves.add(new Move(source, destination));
@@ -74,7 +72,16 @@ public class Knight extends Piece {
      * @return {@link Renderer.CellImage}
      */
     public Renderer.@NotNull CellImage getImageRep() {
-        //TODO
-        return null;
+        // TODO
+        Image whiteKTile = ResourceLoader.getImage('K');
+        Image blackKTile = ResourceLoader.getImage('k');
+        if (whiteKTile.isError() || blackKTile.isError()) {
+            throw new IllegalStateException("Failed to load image");
+        }
+        if (this.getPlayer().getName().equals("White")) {
+            return new Renderer.CellImage(whiteKTile);
+        } else {
+            return new Renderer.CellImage(blackKTile);
+        }
     }
 }

@@ -7,6 +7,7 @@ import castle.comp3021.assignment.protocol.Place;
 import castle.comp3021.assignment.protocol.Player;
 import castle.comp3021.assignment.gui.controllers.Renderer;
 import castle.comp3021.assignment.gui.controllers.ResourceLoader;
+import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -72,8 +73,16 @@ public class Archer extends Piece {
      */
     public Renderer.@NotNull CellImage getImageRep() {
         // TODO
-
-        return null;
+        Image whiteATile = ResourceLoader.getImage('A');
+        Image blackATile = ResourceLoader.getImage('a');
+        if (whiteATile.isError() || blackATile.isError()) {
+            throw new IllegalStateException("Failed to load image");
+        }
+        if (this.getPlayer().getName().equals("White")) {
+            return new Renderer.CellImage(whiteATile);
+        } else {
+            return new Renderer.CellImage(blackATile);
+        }
     }
 
 
