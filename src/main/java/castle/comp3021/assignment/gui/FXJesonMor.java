@@ -101,5 +101,11 @@ public class FXJesonMor extends JesonMor {
 
         // update score to 2 properties
         // TODO: update scorePlayer1Property and scorePlayer2Property
+        if (player.getName().equals("White")) {
+            scorePlayer1Property.setValue(player.getScore());
+        } else {
+            scorePlayer2Property.setValue(player.getScore());
+        }
+        currentPlayerNameProperty.setValue(player.getName());
     }
 }

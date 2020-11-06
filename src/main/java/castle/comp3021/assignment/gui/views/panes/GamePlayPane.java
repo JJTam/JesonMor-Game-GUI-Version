@@ -8,11 +8,12 @@ import castle.comp3021.assignment.gui.views.BigButton;
 import castle.comp3021.assignment.gui.views.BigVBox;
 import castle.comp3021.assignment.gui.views.GameplayInfoPane;
 import castle.comp3021.assignment.gui.views.SideMenuVBox;
+import castle.comp3021.assignment.piece.Knight;
 import castle.comp3021.assignment.player.ConsolePlayer;
 import castle.comp3021.assignment.protocol.*;
 import castle.comp3021.assignment.gui.controllers.Renderer;
+import javafx.application.Platform;
 import javafx.beans.property.*;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -21,8 +22,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
 
 /**
  * This class implements the main playing function of Jeson Mor
@@ -89,10 +88,15 @@ public class GamePlayPane extends BasePane {
      *      - other global variable you want to note down.
      */
     // TODO
+    // add global variables
     private FXJesonMor fxJesonMor = null;  // store this JesonMor
     private Configuration configuration = null; // store the passed configuration
-    private Player winner = null;
+    private final BooleanProperty enterNextTurn = new SimpleBooleanProperty(false);
     private Player currentPlayer = null;
+    private Piece movedPiece = null;
+    private Move lastMove = null;
+    private Player winner = null;
+    private int numMoves = 0;
 
 
     public GamePlayPane() {
@@ -153,17 +157,19 @@ public class GamePlayPane extends BasePane {
         this.configuration = fxJesonMor.getConfiguration();
         this.fxJesonMor.renderBoard(gamePlayCanvas);
         centerContainer.getChildren().addAll(gamePlayCanvas,
-                                            infoPane = new GameplayInfoPane(this.fxJesonMor.getPlayer1Score(),
-                                                                            this.fxJesonMor.getPlayer2Score(),
-                                                                            this.fxJesonMor.getCurPlayerName(),
-                                                                            ticksElapsed)
+                infoPane = new GameplayInfoPane(this.fxJesonMor.getPlayer1Score(),
+                                                this.fxJesonMor.getPlayer2Score(),
+                                                this.fxJesonMor.getCurPlayerName(),
+                                                ticksElapsed)
         );
+
         parameterText.setText("Parameters:\n" + "\nSize of board: " + this.fxJesonMor.getConfiguration().getSize()
-                            + "\nNum of protection moves: " + this.fxJesonMor.getConfiguration().getNumMovesProtection()
-                            + "\nPlayer White" + (this.fxJesonMor.getConfiguration().isFirstPlayerHuman() ? "(human)" : "(computer)")
-                            + "\nPlayer Black" + (this.fxJesonMor.getConfiguration().isSecondPlayerHuman() ? "(human)" : "(computer)")
-                            + "\n"
+                + "\nNum of protection moves: " + this.fxJesonMor.getConfiguration().getNumMovesProtection()
+                + "\nPlayer White" + (this.fxJesonMor.getConfiguration().isFirstPlayerHuman() ? "(human)" : "(computer)")
+                + "\nPlayer Black" + (this.fxJesonMor.getConfiguration().isSecondPlayerHuman() ? "(human)" : "(computer)")
+                + "\n"
         );
+
         startButton.setDisable(false);
         restartButton.setDisable(true);
     }
@@ -201,43 +207,76 @@ public class GamePlayPane extends BasePane {
         //TODO
         startButton.setDisable(true);
         restartButton.setDisable(false);
-        winner = null;
-        int numMoves = 0;
-        var board = this.configuration.getInitialBoard();
-        while (winner == null) {
-            currentPlayer = this.configuration.getPlayers()[numMoves % this.configuration.getPlayers().length];
-            var availableMoves = this.fxJesonMor.getAvailableMoves(currentPlayer);
-            if (availableMoves.length <= 0) {
-                showInvalidMoveMsg("No available moves for the player " + currentPlayer.getName());
-                if (this.configuration.getPlayers()[0].getScore() < this.configuration.getPlayers()[1].getScore()) {
-                    winner = this.configuration.getPlayers()[0];
-                } else if (this.configuration.getPlayers()[0].getScore() > this.configuration.getPlayers()[1].getScore()) {
-                    winner = this.configuration.getPlayers()[1];
-                } else {
-                    winner = currentPlayer;
-                }
+        enterNextTurn.setValue(false);
+        fxJesonMor.startCountdown();
+//        var board = this.configuration.getInitialBoard();
+        this.fxJesonMor.addOnTickHandler(new Runnable() {
+            @Override
+            public void run() {
+                ticksElapsed.setValue(ticksElapsed.getValue() + 1);
+                System.out.println(GameplayInfoPane.countdownFormat(ticksElapsed.getValue()));
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (ticksElapsed.getValue() == DurationTimer.getDefaultEachRound()) {  // time out
+                            fxJesonMor.stopCountdown();
+                            createLosePopup(currentPlayer.getName());
+                        }
+
+                        if (enterNextTurn.getValue()) {  // next round, if true
+                            enterNextTurn.setValue(false);
+                            ticksElapsed.setValue(0);
+                            nextRound();
+                        }
+                    }
+                });
+            }
+        });
+        nextRound();
+    }
+
+
+    /**
+     * Helper method
+     * next round to be performed
+     */
+    public void nextRound() {
+        this.currentPlayer = this.configuration.getPlayers()[this.numMoves % this.configuration.getPlayers().length];
+        var availableMoves = this.fxJesonMor.getAvailableMoves(currentPlayer);
+        if (availableMoves.length <= 0) {
+            this.fxJesonMor.stopCountdown();
+            showInvalidMoveMsg("No available moves for the player " + currentPlayer.getName());
+            if (this.configuration.getPlayers()[0].getScore() < this.configuration.getPlayers()[1].getScore()) {
+                this.winner = this.configuration.getPlayers()[0];
+            } else if (this.configuration.getPlayers()[0].getScore() > this.configuration.getPlayers()[1].getScore()) {
+                this.winner = this.configuration.getPlayers()[1];
             } else {
-                if (currentPlayer instanceof ConsolePlayer) {  // human player
-                    enableCanvas();
-                    this.gamePlayCanvas.setOnMousePressed(this::onCanvasPressed);
-                } else {  // computer
-                    disableCanvas();
-                    var move = currentPlayer.nextMove(this.fxJesonMor, availableMoves);
-                    var movedPiece = this.fxJesonMor.getPiece(move.getSource());
-                    // make move
-                    this.fxJesonMor.movePiece(move);
-                    this.fxJesonMor.updateScore(currentPlayer, movedPiece, move);
-                }
-                System.out.println(numMoves);
-                numMoves++;
-
+                this.winner = currentPlayer;
             }
+            createWinPopup(this.winner.getName());
+        } else {
+            if (currentPlayer instanceof ConsolePlayer) {  // human player turn
+                enableCanvas();
+                this.gamePlayCanvas.setOnMousePressed(this::onCanvasPressed);
+                this.gamePlayCanvas.setOnMouseDragged(this::onCanvasDragged);
+                this.gamePlayCanvas.setOnMouseReleased(this::onCanvasReleased);
 
-            if (winner != null) {
-                createWinPopup(winner.getName());
+            } else {   // computer player turn
+                disableCanvas();
+                this.lastMove = currentPlayer.nextMove(this.fxJesonMor, availableMoves);
+                this.movedPiece = this.fxJesonMor.getPiece( this.lastMove.getSource());
+                this.fxJesonMor.movePiece( this.lastMove);
+                this.numMoves++;
+                updateHistoryField(this.lastMove);
+                this.fxJesonMor.updateScore(this.currentPlayer, this.movedPiece, this.lastMove);
+                enterNextTurn.setValue(true);
             }
+            System.out.printf("move: %d\n", this.numMoves);
+            checkWinner();
         }
     }
+
+
 
     /**
      * Restart the game
@@ -260,7 +299,7 @@ public class GamePlayPane extends BasePane {
      */
     private void onCanvasPressed(MouseEvent event) {
         // TODO
-        System.out.println("Mouse Press");
+        System.out.println("Mouse press");
 
     }
 
@@ -273,6 +312,7 @@ public class GamePlayPane extends BasePane {
      */
     private void onCanvasDragged(MouseEvent event) {
         //TODO
+        System.out.println("Mouse dragging");
     }
 
     /**
@@ -285,6 +325,8 @@ public class GamePlayPane extends BasePane {
      */
     private void onCanvasReleased(MouseEvent event) {
         // TODO
+        System.out.println("Mouse release");
+        this.enterNextTurn.setValue(true);
     }
 
     /**
@@ -292,10 +334,32 @@ public class GamePlayPane extends BasePane {
      */
     private void createWinPopup(String winnerName) {
         //TODO
-        System.out.println(winnerName);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Congratulations!");
+        alert.setHeaderText("Conformation");
+        alert.setContentText(winnerName + " wins!");
+        var cancelButton = alert.showAndWait().orElse(ButtonType.OK);
+        if (cancelButton == ButtonType.OK) {
+            doQuitToMenu();
+        }
 
     }
 
+    /**
+     * Creates a popup which tells the loser(Time out only)
+     */
+    private void createLosePopup(String loserName) {
+        //TODO
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Sorry! Time up");
+        alert.setHeaderText("Conformation");
+        alert.setContentText(loserName + " lose!");
+        var cancelButton = alert.showAndWait().orElse(ButtonType.OK);
+        if (cancelButton == ButtonType.OK) {
+            doQuitToMenu();
+        }
+
+    }
 
     /**
      * check winner, if winner comes out, then play the win.mp3 and popup window.
@@ -306,8 +370,42 @@ public class GamePlayPane extends BasePane {
      */
     private void checkWinner() {
         //TODO
-        winner = currentPlayer;
 
+        // no winner within numMovesProtection moves
+        if (this.numMoves <= this.configuration.getNumMovesProtection()) {
+            return;
+        }
+
+        // first way to win: a piece leaves the central square, the piece should not be an Archer
+        if ((this.movedPiece instanceof Knight) && this.lastMove.getSource().equals(this.configuration.getCentralPlace())
+                && !this.lastMove.getDestination().equals(this.configuration.getCentralPlace())) {
+            this.winner = this.currentPlayer;
+        } else {
+            // second way to win: one player captures all the pieces of other players
+            Player remainingPlayer = null;
+            for (int i = 0; i < this.configuration.getSize(); i++) {
+                for (int j = 0; j < this.configuration.getSize(); j++) {
+                    var piece = this.fxJesonMor.getPiece(i, j);
+                    if (piece == null) {
+                        continue;
+                    }
+                    if (remainingPlayer == null) {
+                        remainingPlayer = piece.getPlayer();
+                    } else if (remainingPlayer != piece.getPlayer()) {
+                        // there are still two players having pieces on board
+                        return;
+                    }
+                }
+            }
+            // if the previous for loop terminates, then there must be 1 player on board (it cannot be null).
+            // then winner appears
+            this.winner = remainingPlayer;
+        }
+
+        if (this.winner != null) {  // if winner appear
+            this.fxJesonMor.stopCountdown();
+            createWinPopup(this.winner.getName());
+        }
     }
 
     /**
@@ -351,6 +449,9 @@ public class GamePlayPane extends BasePane {
      */
     private void updateHistoryField(Move move) {
         //TODO
+        this.historyFiled.setText(this.historyFiled.getText() + "\n  " +
+                "[" + move.getSource().x() + ", " + move.getSource().y() + "]" + " -> " +
+                "[" + move.getDestination().x() + ", " + move.getDestination().y() + "]");
     }
 
     /**
@@ -387,10 +488,21 @@ public class GamePlayPane extends BasePane {
      */
     private void endGame() {
         //TODO
+
+        // reset most of the global variables
+        this.fxJesonMor.stopCountdown();
         this.centerContainer.getChildren().clear();
         this.historyFiled.setText(null);
         this.parameterText.setText(null);
-        this.gamePlayCanvas.getGraphicsContext2D().clearRect(0, 0, this.gamePlayCanvas.getWidth(), this.gamePlayCanvas.getHeight());
+        this.gamePlayCanvas.getGraphicsContext2D().clearRect(0, 0,
+                this.gamePlayCanvas.getWidth(), this.gamePlayCanvas.getHeight());
+        this.enterNextTurn.setValue(false);
+        this.ticksElapsed.setValue(0);
+        this.winner = null;
+        this.currentPlayer = null;
+        this.movedPiece = null;
+        this.lastMove = null;
+        this.numMoves = 0;
         startButton.setDisable(false);
         restartButton.setDisable(true);
     }

@@ -1,7 +1,7 @@
 package castle.comp3021.assignment.gui;
 
+import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -59,13 +59,30 @@ public class DurationTimer {
      */
     void start() {
         //TODO
+        flowTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (var onTickCallback : onTickCallbacks) {
+                            onTickCallback.run();
+                        }
+                        ticksElapsed++;
+                        System.out.printf("Total time pass: %d\n", ticksElapsed);
+                    }
+                });
+            }
+        }, 1000, 1000);
     }
+
 
     /**
      * Stop the timer
      */
     void stop() {
         //TODO
+        flowTimer.cancel();
     }
 
 }
