@@ -20,9 +20,7 @@ import java.util.ArrayList;
  */
 public class Knight extends Piece {
     public Knight(Player player) {
-        super(
-                player
-        );
+        super(player);
     }
 
     @Override
@@ -34,23 +32,19 @@ public class Knight extends Piece {
     public Move[] getAvailableMoves(Game game, Place source) {
         var moves = new ArrayList<Move>();
         var steps = new int[]{1, -1, 2, -2};
-        for (var stepX :
-                steps) {
-            for (var stepY :
-                    steps) {
+        for (var stepX : steps) {
+            for (var stepY : steps) {
                 var destination = new Place(source.x() + stepX, source.y() + stepY);
                 if (Math.abs(destination.x() - source.x()) + Math.abs(destination.y() - source.y()) == 3) {
                     moves.add(new Move(source, destination));
                 }
             }
         }
-        return moves.stream()
-                .filter(move -> validateMove(game, move))
-                .toArray(Move[]::new);
+        return moves.stream().filter(move -> validateMove(game, move)).toArray(Move[]::new);
     }
 
     private boolean validateMove(Game game, Move move) {
-        var rules = new Rule[]{
+        var rules = new Rule[] {
                 new OutOfBoundaryRule(),
                 new OccupiedRule(),
                 new VacantRule(),
@@ -59,8 +53,7 @@ public class Knight extends Piece {
                 new KnightMoveRule(),
                 new KnightBlockRule(),
         };
-        for (var rule :
-                rules) {
+        for (var rule : rules) {
             if (!rule.validate(game, move)) {
                 return false;
             }

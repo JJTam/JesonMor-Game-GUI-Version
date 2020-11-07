@@ -42,9 +42,7 @@ public class Archer extends Piece {
             }
         }
 
-        return moves.stream()
-                .filter(move -> validateMove(game, move))
-                .toArray(Move[]::new);
+        return moves.stream().filter(move -> validateMove(game, move)).toArray(Move[]::new);
     }
 
     private boolean validateMove(Game game, Move move) {
@@ -56,8 +54,7 @@ public class Archer extends Piece {
                 new FirstNMovesProtectionRule(game.getConfiguration().getNumMovesProtection()),
                 new ArcherMoveRule(),
         };
-        for (var rule :
-                rules) {
+        for (var rule : rules) {
             if (!rule.validate(game, move)) {
                 return false;
             }
