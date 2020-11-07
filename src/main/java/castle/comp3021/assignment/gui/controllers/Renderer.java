@@ -1,12 +1,15 @@
 package castle.comp3021.assignment.gui.controllers;
 
 import castle.comp3021.assignment.gui.ViewConfig;
-import castle.comp3021.assignment.protocol.Configuration;
+import castle.comp3021.assignment.piece.Archer;
+import castle.comp3021.assignment.piece.Knight;
 import castle.comp3021.assignment.protocol.Piece;
 import castle.comp3021.assignment.protocol.Place;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+
 import org.jetbrains.annotations.NotNull;
 
 
@@ -53,6 +56,9 @@ public class Renderer {
      */
     public static void drawOval(@NotNull GraphicsContext gc, double x, double y) {
         // TODO
+        gc.setFill(Color.rgb(255, 255, 220));
+        gc.fillOval(x , y, 12, 12);
+
     }
 
     /**
@@ -64,6 +70,9 @@ public class Renderer {
      */
     public static void drawRectangle(@NotNull GraphicsContext gc, double x, double y){
         //TODO
+        int pieceSize = ViewConfig.PIECE_SIZE;
+        gc.setFill(Color.rgb(255, 255, 220));
+        gc.fillRect(x * pieceSize, y * pieceSize, pieceSize, pieceSize);
     }
 
     /**
@@ -105,11 +114,11 @@ public class Renderer {
         //TODO
         GraphicsContext gc = canvas.getGraphicsContext2D();
         for (int i = 0; i < board.length; i++) {
-            gc.drawImage(board[i][0].getImageRep().image, i * ViewConfig.PIECE_SIZE, 0);
-        }
-        for (int j = 0; j < board.length; j++) {
-            gc.drawImage(board[j][board.length - 1].getImageRep().image, j * ViewConfig.PIECE_SIZE,
-                    canvas.getHeight() - ViewConfig.PIECE_SIZE);
+            for (int j = 0; j < board.length; j++) {
+                if (board[i][j] instanceof Knight || board[i][j] instanceof Archer) {
+                    gc.drawImage(board[i][j].getImageRep().image, i * ViewConfig.PIECE_SIZE, j * ViewConfig.PIECE_SIZE);
+                }
+            }
         }
     }
 

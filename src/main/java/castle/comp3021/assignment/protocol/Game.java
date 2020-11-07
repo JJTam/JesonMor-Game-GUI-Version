@@ -249,7 +249,7 @@ public abstract class Game implements Cloneable {
         return this.configuration.getPlayers()[this.numMoves % this.configuration.getPlayers().length];
     }
 
-    public int getCurrentPlayerID(){
+    public int getCurrentPlayerID() {
         return this.numMoves % this.configuration.getPlayers().length;
     }
 

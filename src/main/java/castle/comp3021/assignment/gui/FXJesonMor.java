@@ -30,7 +30,7 @@ public class FXJesonMor extends JesonMor {
     public FXJesonMor(Configuration configuration) {
         //TODO
         super(configuration);
-        this.getConfiguration().setAllInitialPieces();
+        this.configuration.setAllInitialPieces();
         durationTimer = new DurationTimer();
     }
 
@@ -44,7 +44,7 @@ public class FXJesonMor extends JesonMor {
     public void renderBoard(@NotNull Canvas canvas) {
         //TODO
         Renderer.renderChessBoard(canvas, this.configuration.getSize(), this.configuration.getCentralPlace());
-        Renderer.renderPieces(canvas, this.configuration.getInitialBoard());
+        Renderer.renderPieces(canvas, this.board);
     }
 
 
@@ -83,6 +83,10 @@ public class FXJesonMor extends JesonMor {
 
     public IntegerProperty getPlayer2Score() {
         return scorePlayer2Property;
+    }
+
+    public void updateNumMoves() {
+        this.numMoves++;
     }
 
     /**

@@ -86,15 +86,6 @@ public abstract class Player implements Cloneable {
     public abstract @NotNull Move nextMove(Game game, Move[] availableMoves);
 
 
-   /* *//**
-     * For FXJseonMor
-     * Choose a move from available moves.
-     * @param game           the current game object
-     * @param availableMoves available moves for this player to choose from.
-     * @return the chosen move
-     *//*
-    public abstract @NotNull Move nextFXMove(Game game, Move[] availableMoves);*/
-
 
     public String validateMove(Game game, Move move) {
         var rules = new Rule[]{

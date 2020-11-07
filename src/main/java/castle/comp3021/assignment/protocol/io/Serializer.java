@@ -33,6 +33,7 @@ public class Serializer {
      */
     public void saveToFile(FXJesonMor fxJesonMor) throws IOException {
         //TODO
+        String h = fxJesonMor.toString();
     }
 
 }

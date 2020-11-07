@@ -65,6 +65,7 @@ public class Archer extends Piece {
         return true;
     }
 
+
     /**
      * Render archer pieces to the corresponding images implemented in {@link ResourceLoader getImage}
      * Hint: consider different color of archer pieces.
@@ -84,8 +85,5 @@ public class Archer extends Piece {
             return new Renderer.CellImage(blackATile);
         }
     }
-
-
-
 
 }

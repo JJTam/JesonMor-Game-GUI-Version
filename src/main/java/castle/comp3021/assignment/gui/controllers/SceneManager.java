@@ -2,13 +2,11 @@ package castle.comp3021.assignment.gui.controllers;
 
 import castle.comp3021.assignment.gui.ViewConfig;
 import castle.comp3021.assignment.gui.views.panes.*;
-import castle.comp3021.assignment.piece.VacantRule;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Map;
 
 /**

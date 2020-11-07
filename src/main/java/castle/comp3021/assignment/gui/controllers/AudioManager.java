@@ -1,7 +1,8 @@
 package castle.comp3021.assignment.gui.controllers;
 
-import javafx.scene.media.MediaPlayer;
 
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public class AudioManager {
      * Enumeration of known sound resources.
      */
     public enum SoundRes {
-        WIN, PLACE, CLICK,LOSE;
+        WIN, PLACE, CLICK, LOSE, KILL, MOVE;
         @Override
         public String toString() {
             return super.toString().toLowerCase();
@@ -55,7 +56,7 @@ public class AudioManager {
      * <ul>
      * <li>Use {@link MediaPlayer#play()} and {@link MediaPlayer#dispose()}.</li>
      * <li>When creating a new MediaPlayer object, add it into {@link AudioManager#soundPool} before playing it.</li>
-     * <li>Set a callback for when the sound has completed playing. This is to remove it from the soundpool, and
+     * <li>Set a callback for when the sound has completed playing. This is to remove it from the sound pool, and
      * dispose the player using a daemon thread.</li>
      * </ul>
      *
@@ -63,7 +64,21 @@ public class AudioManager {
      */
     private void playFile(final String name) {
         //TODO
-
+        if (!isEnabled()) {
+            return;
+        }
+        String audioPath = ResourceLoader.getResource("assets/audio/" + name + ".mp3");
+        MediaPlayer mediaPlayer = new MediaPlayer(new Media(audioPath));
+        this.soundPool.add(mediaPlayer);
+        mediaPlayer.play();
+        mediaPlayer.setOnEndOfMedia(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+                soundPool.remove(mediaPlayer);
+            }
+        });
     }
 
     /**
