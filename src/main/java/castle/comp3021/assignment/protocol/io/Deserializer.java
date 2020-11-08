@@ -1,6 +1,8 @@
 package castle.comp3021.assignment.protocol.io;
 
+import castle.comp3021.assignment.player.RandomPlayer;
 import castle.comp3021.assignment.protocol.*;
+import castle.comp3021.assignment.protocol.exception.InvalidConfigurationError;
 import castle.comp3021.assignment.protocol.exception.InvalidGameException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +32,6 @@ public class Deserializer {
         if (!path.toFile().exists()) {
             throw new FileNotFoundException("Cannot find file to load!");
         }
-
         this.path = path;
     }
 
@@ -45,17 +46,24 @@ public class Deserializer {
     @Nullable
     private String getFirstNonEmptyLine(@NotNull final BufferedReader br) throws IOException {
         // TODO
-        return "";
+        String line;
+        while ((line = br.readLine()) != null) {
+            if (!line.isEmpty() && !line.contains("#") && !line.contains("END")) {
+                return line;
+            }
+        }
+        return null;
     }
 
     public void parseGame() {
         try (var reader = new BufferedReader(new FileReader(path.toFile()))) {
             String line;
-
             int size;
             line = getFirstNonEmptyLine(reader);
             if (line != null) {
                 // TODO: get size here
+                size = Integer.parseInt(line.replaceAll("[^0-9]", ""));
+                System.out.println("size =  " + size);
             } else {
                 throw new InvalidGameException("Unexpected EOF when parsing number of board size");
             }
@@ -64,8 +72,10 @@ public class Deserializer {
             line = getFirstNonEmptyLine(reader);
             if (line != null) {
                 // TODO: get numMovesProtection here
+                numMovesProtection = Integer.parseInt(line.replaceAll("[^0-9]", ""));
+                System.out.println("numMovesProtection = " + numMovesProtection);
             } else {
-                throw new InvalidGameException("Unexpected EOF when parsing number of columns");
+                throw new InvalidGameException("Unexpected EOF when parsing number of MovesProtection");
             }
 
             //TODO
@@ -74,12 +84,21 @@ public class Deserializer {
              *  If success, assign to {@link Deserializer#centralPlace}
              *  Hint: You may use {@link Deserializer#parsePlace(String)}
              */
+            line = getFirstNonEmptyLine(reader);
+            if (line != null) {
+                this.centralPlace = parsePlace(line);
+                System.out.println(this.centralPlace.x() + "," + this.centralPlace.y());
+            } else {
+                throw new InvalidGameException("Unexpected EOF when parsing central place");
+            }
 
 
             int numPlayers;
             line = getFirstNonEmptyLine(reader);
             if (line != null) {
                 //TODO: get number of players here
+                numPlayers = Integer.parseInt(line.replaceAll("[^0-9]", ""));
+                System.out.println("numPlayers = " + numPlayers);
             } else {
                 throw new InvalidGameException("Unexpected EOF when parsing number of players");
             }
@@ -90,8 +109,24 @@ public class Deserializer {
              * create an array of players {@link Player} with length of numPlayers, and name it by the read-in name
              * Also create an array representing scores {@link Deserializer#storedScores} of players with length of numPlayers
              */
-            Player[] players;
-            // storedScores = new Integer[numPlayers];
+            Player[] players = new Player[numPlayers];
+            this.storedScores = new Integer[numPlayers];
+            String playerLine1 = getFirstNonEmptyLine(reader);
+            String playerLine2 = getFirstNonEmptyLine(reader);
+            if (playerLine1 != null && playerLine2 != null) {
+                String player1Name = playerLine1.substring(playerLine1.indexOf(":") + 1, playerLine1.indexOf(";"));
+                String player2Name = playerLine2.substring(playerLine2.indexOf(":") + 1, playerLine2.indexOf(";"));
+                this.storedScores[0] = Integer.parseInt(playerLine1.replaceAll("[^0-9]", ""));
+                this.storedScores[1] = Integer.parseInt(playerLine2.replaceAll("[^0-9]", ""));
+                players[0] = new RandomPlayer(player1Name);
+                players[1] = new RandomPlayer(player2Name);
+                System.out.println("player1Name = " + player1Name + " player2Name = " + player2Name);
+                System.out.println("player1Score = " + storedScores[0] + " player2Score = " + storedScores[1]);
+
+            } else {
+                throw new InvalidGameException("Unexpected EOF when parsing number of players");
+            }
+
 
             // TODO
             /**
@@ -114,9 +149,10 @@ public class Deserializer {
         } catch (IOException ioe) {
             throw new InvalidGameException(ioe);
         }
+
     }
 
-    public Configuration getLoadedConfiguration(){
+    public Configuration getLoadedConfiguration() {
         return configuration;
     }
 
@@ -124,7 +160,7 @@ public class Deserializer {
         return storedScores;
     }
 
-    public ArrayList<MoveRecord> getMoveRecords(){
+    public ArrayList<MoveRecord> getMoveRecords() {
         return moveRecords;
     }
 
@@ -151,14 +187,25 @@ public class Deserializer {
     }
 
     /**
-     * Parse a string of move to a {@link Place}
+     * Parse a string of place to a {@link Place}
      * Handle InvalidConfigurationError if the parse fails.
      * @param placeString given string
      * @return {@link Place}
      */
     private Place parsePlace(String placeString) {
         //TODO
-        return null;
+        String result = placeString.substring(placeString.indexOf("(") + 1, placeString.indexOf(")"));
+        var segments = result.split(",");
+        if (segments.length < 2 ) {
+            return null;
+        }
+        try {
+            int x = Integer.parseInt(segments[0]);
+            int y = Integer.parseInt(segments[1]);
+            return new Place(x, y);
+        } catch (NumberFormatException e) {
+            throw new InvalidConfigurationError("Parse place record failed. Please check format!");
+        }
     }
 
 

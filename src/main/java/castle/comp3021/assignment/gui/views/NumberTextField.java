@@ -38,6 +38,14 @@ public class NumberTextField extends TextField {
      */
     private boolean validate(@NotNull String text) {
         //TODO
+        if (text.isBlank()) {
+            return true;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            if (!Character.isDigit(text.charAt(i))) {
+                return false;
+            }
+        }
         return true;
     }
 

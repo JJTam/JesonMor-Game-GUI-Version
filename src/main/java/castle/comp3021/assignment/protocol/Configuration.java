@@ -64,7 +64,6 @@ public class Configuration implements Cloneable {
         if (size > 26) {
             throw new InvalidConfigurationError("size of gameboard is at most 26");
         }
-
         if (numMovesProtection < 0) {
             throw new InvalidConfigurationError("number of moves with capture protection cannot be negative");
         }
@@ -269,6 +268,15 @@ public class Configuration implements Cloneable {
     @Override
     public String toString() {
         // TODO
-        return "";
+        return  "#Game setting" +"\n" +
+                "size:" + this.size + "\n" +
+                "numMovesProtection:" + this.numMovesProtection + "\n" +
+                "centralPlace:" + this.getCentralPlace().toString() + "\n" +
+                "numPlayers:" + this.players.length + "\n\n" +
+                "#Player info" + "\n" +
+                "#player1:" + "\n" +
+                "name:" + this.players[0].getName() + "; score:" + this.players[0].score + "\n" +
+                "#player2:" + "\n" +
+                "name:" + this.players[1].getName() + "; score:" + this.players[1].score;
     }
 }

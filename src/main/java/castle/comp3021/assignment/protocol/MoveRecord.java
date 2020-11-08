@@ -49,7 +49,9 @@ public class MoveRecord implements Cloneable {
     @Override
     public String toString() {
         //TODO
-        return "";
+        return  "player:" + this.player.getName() + ";" + " move:" +
+                "(" + this.move.getSource().x() + "," + this.move.getSource().y() + ")" +
+                "->(" + this.move.getDestination().x() + "," + this.move.getDestination().y() + ")";
     }
 
     @Override

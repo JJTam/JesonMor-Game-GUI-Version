@@ -1,9 +1,12 @@
 package castle.comp3021.assignment.gui.views.panes;
 
 import castle.comp3021.assignment.gui.FXJesonMor;
+import castle.comp3021.assignment.gui.controllers.SceneManager;
 import castle.comp3021.assignment.protocol.Configuration;
 import castle.comp3021.assignment.protocol.MoveRecord;
 import castle.comp3021.assignment.protocol.Place;
+import castle.comp3021.assignment.protocol.exception.InvalidConfigurationError;
+import castle.comp3021.assignment.protocol.exception.InvalidGameException;
 import castle.comp3021.assignment.protocol.io.Deserializer;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -13,12 +16,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import castle.comp3021.assignment.gui.views.BigButton;
 import castle.comp3021.assignment.gui.views.BigVBox;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.*;
 
 
@@ -48,9 +53,8 @@ public class ValidationPane extends BasePane{
     private Configuration loadedConfiguration;
     private Integer[] storedScores;
     private FXJesonMor loadedGame;
-    private Place loadedcentralPlace;
+    private Place loadedCentralPlace;
     private ArrayList<MoveRecord> loadedMoveRecords = new ArrayList<>();
-
     private BooleanProperty isValid = new SimpleBooleanProperty(false);
 
 
@@ -63,6 +67,10 @@ public class ValidationPane extends BasePane{
     @Override
     void connectComponents() {
         // TODO
+        leftContainer.getChildren().addAll(title, explanation, loadButton, validationButton, replayButton, returnButton);
+        centerContainer.getChildren().addAll(gamePlayCanvas);
+        setLeft(leftContainer);
+        setCenter(centerContainer);
     }
 
     @Override
@@ -78,6 +86,22 @@ public class ValidationPane extends BasePane{
     @Override
     void setCallbacks() {
         //TODO
+        validationButton.setDisable(true);
+        replayButton.setDisable(true);
+
+        loadButton.setOnAction(mouseEvent -> {
+            if (loadFromFile()) {
+                validationButton.setDisable(false);
+            } else {
+                showErrorMsg();
+            }
+        });
+
+        validationButton.setOnAction(mouseEvent -> onClickValidationButton());
+
+        replayButton.setOnAction(mouseEvent -> onClickReplayButton());
+
+        returnButton.setOnAction(mouseEvent -> returnToMainMenu());
     }
 
     /**
@@ -88,14 +112,27 @@ public class ValidationPane extends BasePane{
      *      - Get file from {@link ValidationPane#getTargetLoadFile}
      *      - Instantiate an instance of {@link Deserializer} using the file's path
      *      - Using {@link Deserializer#parseGame()}
-     *      - Initialize {@link ValidationPane#loadedConfiguration}, {@link ValidationPane#loadedcentralPlace},
+     *      - Initialize {@link ValidationPane#loadedConfiguration}, {@link ValidationPane#loadedCentralPlace},
      *                   {@link ValidationPane#loadedGame}, {@link ValidationPane#loadedMoveRecords}
      *                   {@link ValidationPane#storedScores}
      * @return whether the file and information have been loaded successfully.
      */
     private boolean loadFromFile() {
         //TODO
-        return false;
+        File loadFile = this.getTargetLoadFile();
+        if (loadFile == null) {
+            return false;
+        }
+        try {
+            Deserializer deserializer = new Deserializer(loadFile.toPath());
+            deserializer.parseGame();
+        } catch (FileNotFoundException fileNotFoundException) {
+            fileNotFoundException.printStackTrace();
+        } catch (InvalidGameException | InvalidConfigurationError error) {
+            System.out.println(error.getMessage());
+            showErrorConfiguration(error.getMessage());
+        }
+        return true;
     }
 
     /**
@@ -105,7 +142,7 @@ public class ValidationPane extends BasePane{
      *      - if loaded, check loaded content by calling {@link ValidationPane#validateHistory}
      *      - When the loaded file has passed validation, the "replay" button is enabled.
      */
-    private void onClickValidationButton(){
+    private void onClickValidationButton() {
         //TODO
     }
 
@@ -115,12 +152,12 @@ public class ValidationPane extends BasePane{
      *      - You can add a "next" button to render each move, or
      *      - Or you can refer to {@link Task} for implementation.
      */
-    private void onClickReplayButton(){
+    private void onClickReplayButton() {
         //TODO
     }
 
     /**
-     * Validate the {@link ValidationPane#loadedConfiguration}, {@link ValidationPane#loadedcentralPlace},
+     * Validate the {@link ValidationPane#loadedConfiguration}, {@link ValidationPane#loadedCentralPlace},
      *              {@link ValidationPane#loadedGame}, {@link ValidationPane#loadedMoveRecords}
      *              {@link ValidationPane#storedScores}
      * Hint:
@@ -128,7 +165,7 @@ public class ValidationPane extends BasePane{
      *      - whether each move is valid
      *      - whether scores are correct
      */
-    private boolean validateHistory(){
+    private boolean validateHistory() {
         //TODO
         return true;
     }
@@ -141,7 +178,7 @@ public class ValidationPane extends BasePane{
      *      - ContentText: errorMsg
      * @param errorMsg error message
      */
-    private void showErrorConfiguration(String errorMsg){
+    private void showErrorConfiguration(String errorMsg) {
         // TODO
     }
 
@@ -151,7 +188,7 @@ public class ValidationPane extends BasePane{
      *      - title: Error!
      *      - ContentText: You haven't loaded a record, Please load first.
      */
-    private void showErrorMsg(){
+    private void showErrorMsg() {
         //TODO
     }
 
@@ -161,7 +198,7 @@ public class ValidationPane extends BasePane{
      *     - title: Confirm
      *     - HeaderText: Pass validation!
      */
-    private void passValidationWindow(){
+    private void passValidationWindow() {
         //TODO
     }
 
@@ -170,8 +207,19 @@ public class ValidationPane extends BasePane{
      * Hint:
      *  - Before return, clear the rendered canvas, and clear stored information
      */
-    private void returnToMainMenu(){
+    private void returnToMainMenu() {
         // TODO
+        this.gamePlayCanvas.getGraphicsContext2D().clearRect(0, 0,
+                this.gamePlayCanvas.getWidth(), this.gamePlayCanvas.getHeight());
+        validationButton.setDisable(true);
+        replayButton.setDisable(true);
+        loadedConfiguration = null;
+        storedScores = null;
+        loadedGame = null;
+        loadedCentralPlace = null;
+        loadedMoveRecords = null;
+        isValid.setValue(false);
+        SceneManager.getInstance().showPane(MainMenuPane.class);
     }
 
 
@@ -186,7 +234,14 @@ public class ValidationPane extends BasePane{
     @Nullable
     private File getTargetLoadFile() {
         //TODO
-        return null;
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Resource File");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*"),
+                new FileChooser.ExtensionFilter("Text Documents (*.txt)", "*.txt")
+        );
+        fileChooser.setSelectedExtensionFilter(fileChooser.getSelectedExtensionFilter());
+        return fileChooser.showOpenDialog(new Stage());
     }
 
 }

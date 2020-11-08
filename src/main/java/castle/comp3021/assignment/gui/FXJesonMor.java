@@ -3,6 +3,7 @@ package castle.comp3021.assignment.gui;
 import castle.comp3021.assignment.textversion.JesonMor;
 import castle.comp3021.assignment.protocol.*;
 import castle.comp3021.assignment.gui.controllers.Renderer;
+import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -105,11 +106,16 @@ public class FXJesonMor extends JesonMor {
 
         // update score to 2 properties
         // TODO: update scorePlayer1Property and scorePlayer2Property
-        if (player.getName().equals("White")) {
-            scorePlayer1Property.setValue(player.getScore());
-        } else {
-            scorePlayer2Property.setValue(player.getScore());
-        }
-        currentPlayerNameProperty.setValue(player.getName());
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                if (player.getName().equals("White")) {
+                    scorePlayer1Property.setValue(player.getScore());
+                } else {
+                    scorePlayer2Property.setValue(player.getScore());
+                }
+               currentPlayerNameProperty.setValue(getCurrentPlayer().getName());
+            }
+        });
     }
 }

@@ -2,9 +2,10 @@ package castle.comp3021.assignment.protocol.io;
 
 
 import castle.comp3021.assignment.gui.FXJesonMor;
+import javafx.stage.FileChooser;
+import java.io.*;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 /**
  * This class exports the entire game configuration and procedure to file
@@ -33,7 +34,19 @@ public class Serializer {
      */
     public void saveToFile(FXJesonMor fxJesonMor) throws IOException {
         //TODO
-        String h = fxJesonMor.toString();
+        var fileChooser = new FileChooser();
+        fileChooser.setTitle("Save as");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*"),
+                new FileChooser.ExtensionFilter("Text Documents (*.txt)", "*.txt")
+        );
+        File file = fileChooser.showSaveDialog(new Stage());
+        if (file != null) {
+            BufferedWriter output = new BufferedWriter(new FileWriter(file));
+            output.write(fxJesonMor.toString());
+            output.append("\nEND");
+            output.close();
+        }
     }
 
 }

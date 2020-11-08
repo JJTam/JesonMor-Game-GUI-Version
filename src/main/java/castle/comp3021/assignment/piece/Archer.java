@@ -46,10 +46,11 @@ public class Archer extends Piece {
     }
 
     private boolean validateMove(Game game, Move move) {
-        var rules = new Rule[]{
+        var rules = new Rule[] {
                 new OutOfBoundaryRule(),
                 new OccupiedRule(),
                 new VacantRule(),
+                new BelongingRule(),
                 new NilMoveRule(),
                 new FirstNMovesProtectionRule(game.getConfiguration().getNumMovesProtection()),
                 new ArcherMoveRule(),

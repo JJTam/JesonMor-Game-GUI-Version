@@ -69,11 +69,10 @@ public class DurationTimer {
                             onTickCallback.run();
                         }
                         ticksElapsed++;
-                        System.out.printf("Total time pass: %d\n", ticksElapsed);
                     }
                 });
             }
-        }, 1000, 1000);
+        },1000, 1000);
     }
 
 

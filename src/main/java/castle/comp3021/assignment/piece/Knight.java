@@ -48,6 +48,7 @@ public class Knight extends Piece {
                 new OutOfBoundaryRule(),
                 new OccupiedRule(),
                 new VacantRule(),
+                new BelongingRule(),
                 new NilMoveRule(),
                 new FirstNMovesProtectionRule(game.getConfiguration().getNumMovesProtection()),
                 new KnightMoveRule(),

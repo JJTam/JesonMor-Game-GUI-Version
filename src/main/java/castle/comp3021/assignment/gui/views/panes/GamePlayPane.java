@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+
 /**
  * This class implements the main playing function of Jeson Mor
  * The necessary components have been already defined (e.g., topBar, title, buttons).
@@ -142,13 +143,7 @@ public class GamePlayPane extends BasePane {
     @Override
     void setCallbacks() {
         //TODO
-        startButton.setOnAction(mouseEvent -> {
-            try {
-                startGame();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        startButton.setOnAction(mouseEvent -> startGame());
 
         restartButton.setOnAction(mouseEvent -> onRestartButtonClick());
 
@@ -217,38 +212,29 @@ public class GamePlayPane extends BasePane {
      *          - or you can add handler when mouse is released
      *          - or you can take advantage of timer to automatically change player. (Bonus)
      */
-    public void startGame() throws IOException {
+    public void startGame() {
         //TODO
         startButton.setDisable(true);
         restartButton.setDisable(false);
         enterNextTurn.setValue(false);
         fxJesonMor.startCountdown();
-//        var board = this.configuration.getInitialBoard();
         this.fxJesonMor.addOnTickHandler(new Runnable() {
             @Override
             public void run() {
-                ticksElapsed.setValue(ticksElapsed.getValue() + 1);
-                System.out.println(GameplayInfoPane.countdownFormat(ticksElapsed.getValue()));
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
+                        ticksElapsed.setValue(ticksElapsed.getValue() + 1);
+                        System.out.println(GameplayInfoPane.countdownFormat(ticksElapsed.getValue()));
                         if (ticksElapsed.getValue() == DurationTimer.getDefaultEachRound()) {  // time out
                             fxJesonMor.stopCountdown();
-                            try {
-                                createLosePopup(currentPlayer.getName());
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            String loser = fxJesonMor.getCurrentPlayer().getName();
+                            createLosePopup(loser);
                         }
-
-                        if (enterNextTurn.getValue()) {  // next round, if true
-                            enterNextTurn.setValue(false);
-                            ticksElapsed.setValue(0);
-                            try {
+                        else if (enterNextTurn.getValue()) {  // enter next round, if true
+                                ticksElapsed.setValue(0);
+                                enterNextTurn.setValue(false);
                                 nextRound();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
                         }
                     }
                 });
@@ -262,7 +248,7 @@ public class GamePlayPane extends BasePane {
      * Helper method
      * next round to be performed
      */
-    public void nextRound() throws IOException {
+    public void nextRound() {
         this.currentPlayer = this.configuration.getPlayers()[this.fxJesonMor.getNumMoves() % this.configuration.getPlayers().length];
         var availableMoves = this.fxJesonMor.getAvailableMoves(currentPlayer);
         if (availableMoves.length <= 0) {
@@ -285,10 +271,9 @@ public class GamePlayPane extends BasePane {
             } else {   // computer player turn
                 disableCanvas();
                 this.lastMove = currentPlayer.nextMove(this.fxJesonMor, availableMoves);
-                this.movedPiece = this.fxJesonMor.getPiece( this.lastMove.getSource());
+                this.movedPiece = this.fxJesonMor.getPiece(this.lastMove.getSource());
                 this.fxJesonMor.movePiece(this.lastMove);
                 this.fxJesonMor.updateNumMoves();
-                System.out.println("Move: " + this.fxJesonMor.getNumMoves());
                 audioManager.playSound(AudioManager.SoundRes.PLACE);
                 updateHistoryField(this.lastMove);
                 this.fxJesonMor.updateScore(this.currentPlayer, this.movedPiece, this.lastMove);
@@ -296,7 +281,6 @@ public class GamePlayPane extends BasePane {
                 checkWinner();
                 enterNextTurn.setValue(true);
             }
-
         }
     }
 
@@ -328,9 +312,8 @@ public class GamePlayPane extends BasePane {
     private void onCanvasPressed(MouseEvent event) {
         // TODO
         audioManager.playSound(AudioManager.SoundRes.CLICK);
-        sourceMove = new Place(toBoardCoordinate(event.getX()), toBoardCoordinate(event.getY()));
-        Renderer.drawRectangle(gamePlayCanvas.getGraphicsContext2D(), sourceMove.x(), sourceMove.y());
-
+        this.sourceMove = new Place(toBoardCoordinate(event.getX()), toBoardCoordinate(event.getY()));
+        Renderer.drawRectangle(this.gamePlayCanvas.getGraphicsContext2D(), sourceMove.x(), sourceMove.y());
     }
 
     /**
@@ -356,24 +339,30 @@ public class GamePlayPane extends BasePane {
      */
     private void onCanvasReleased(MouseEvent event) {
         // TODO
+        this.destinationMove = new Place(toBoardCoordinate(event.getX()), toBoardCoordinate(event.getY()));
+        this.lastMove = new Move(this.sourceMove, this.destinationMove);
+        String validation = this.currentPlayer.validateMove(this.fxJesonMor, this.lastMove);
+        if (validation == null) {
         audioManager.playSound(AudioManager.SoundRes.PLACE);
-        destinationMove = new Place(toBoardCoordinate(event.getX()), toBoardCoordinate(event.getY()));
-
-        boolean playerSuccessMove = false;
-
-
-        if (true) {
-            this.fxJesonMor.updateNumMoves();
-            enterNextTurn.setValue(true);
-            System.out.printf("move: %d\n", this.fxJesonMor.getNumMoves());
+        this.movedPiece = this.fxJesonMor.getPiece(this.lastMove.getSource());
+        this.fxJesonMor.movePiece(this.lastMove);
+        this.fxJesonMor.updateNumMoves();
+        this.fxJesonMor.updateScore(this.currentPlayer, this.movedPiece, this.lastMove);
+        this.fxJesonMor.renderBoard(this.gamePlayCanvas);
+        updateHistoryField(this.lastMove);
+        checkWinner();
+        enterNextTurn.setValue(true);
+        System.out.printf("move: %d\n", this.fxJesonMor.getNumMoves());
+        } else {
+            showInvalidMoveMsg(validation);
         }
-
+        this.fxJesonMor.renderBoard(this.gamePlayCanvas);
     }
 
     /**
      * Creates a popup which tells the winner
      */
-    private void createWinPopup(String winnerName) throws IOException {
+    private void createWinPopup(String winnerName) {
         //TODO
         ButtonType startNewGame = new ButtonType("Start New Game");
         ButtonType exportMoveRecords = new ButtonType("Export Move Records");
@@ -383,14 +372,19 @@ public class GamePlayPane extends BasePane {
         alert.setHeaderText("Conformation");
         audioManager.playSound(AudioManager.SoundRes.WIN);
         var result = alert.showAndWait();
-        if (result.get() == startNewGame) {
+        if (result.orElse(null) == startNewGame) {
             onRestartButtonClick();
         }
-        else if (result.get() == exportMoveRecords) {
-            Serializer.getInstance().saveToFile(this.fxJesonMor);
+        else if (result.orElse(null) == exportMoveRecords) {
+            try {
+                Serializer.getInstance().saveToFile(this.fxJesonMor);
+                onRestartButtonClick();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        else if (result.get() == returnToMainMenu) {
-            doQuitToMenuAction();
+        else if (result.orElse(null) == returnToMainMenu) {
+            doQuitToMenu();
         }
 
     }
@@ -398,7 +392,7 @@ public class GamePlayPane extends BasePane {
     /**
      * Creates a popup which tells the loser(Time out only)
      */
-    private void createLosePopup(String loserName) throws IOException {
+    private void createLosePopup(String loserName) {
         ButtonType startNewGame = new ButtonType("Start New Game");
         ButtonType exportMoveRecords = new ButtonType("Export Move Records");
         ButtonType returnToMainMenu = new ButtonType("Return to Main Menu");
@@ -407,14 +401,19 @@ public class GamePlayPane extends BasePane {
         alert.setHeaderText("Conformation");
         audioManager.playSound(AudioManager.SoundRes.LOSE);
         var result = alert.showAndWait();
-        if (result.get() == startNewGame) {
+        if (result.orElse(null) == startNewGame) {
             onRestartButtonClick();
         }
-        else if (result.get() == exportMoveRecords) {
-            Serializer.getInstance().saveToFile(this.fxJesonMor);
+        else if (result.orElse(null) == exportMoveRecords) {
+            try {
+                Serializer.getInstance().saveToFile(this.fxJesonMor);
+                onRestartButtonClick();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        else if (result.get() == returnToMainMenu) {
-            doQuitToMenuAction();
+        else if (result.orElse(null) == returnToMainMenu) {
+            doQuitToMenu();
         }
     }
 
@@ -425,7 +424,7 @@ public class GamePlayPane extends BasePane {
      *      - Export Move Records: Using {@link castle.comp3021.assignment.protocol.io.Serializer} to write game's configuration to file
      *      - Return to Main menu, using {@link GamePlayPane#doQuitToMenuAction()}
      */
-    private void checkWinner() throws IOException {
+    private void checkWinner() {
         //TODO
 
         // no winner within numMovesProtection moves
