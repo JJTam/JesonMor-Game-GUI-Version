@@ -27,7 +27,6 @@ public class Deserializer {
     private ArrayList<MoveRecord> moveRecords = new ArrayList<>();
 
 
-
     public Deserializer(@NotNull final Path path) throws FileNotFoundException {
         if (!path.toFile().exists()) {
             throw new FileNotFoundException("Cannot find file to load!");
@@ -47,8 +46,8 @@ public class Deserializer {
     private String getFirstNonEmptyLine(@NotNull final BufferedReader br) throws IOException {
         // TODO
         String line;
-        while ((line = br.readLine()) != null) {
-            if (!line.isEmpty() && !line.contains("#") && !line.contains("END")) {
+        while ((line = br.readLine()) != null && !line.equals("END")) {
+            if (!line.isEmpty() && !line.contains("#")) {
                 return line;
             }
         }
@@ -62,8 +61,14 @@ public class Deserializer {
             line = getFirstNonEmptyLine(reader);
             if (line != null) {
                 // TODO: get size here
-                size = Integer.parseInt(line.replaceAll("[^0-9]", ""));
-                System.out.println("size =  " + size);
+                String subLine = line.substring(line.indexOf(":") + 1).strip();
+                try {
+                    size = Integer.parseInt(subLine);
+//                    System.out.println("size =  " + size);
+                } catch (Exception ex) {
+                    throw new InvalidConfigurationError("Parse board size failed. Please check format! " +
+                            "For input string: \""+ subLine + "\"");
+                }
             } else {
                 throw new InvalidGameException("Unexpected EOF when parsing number of board size");
             }
@@ -72,11 +77,18 @@ public class Deserializer {
             line = getFirstNonEmptyLine(reader);
             if (line != null) {
                 // TODO: get numMovesProtection here
-                numMovesProtection = Integer.parseInt(line.replaceAll("[^0-9]", ""));
-                System.out.println("numMovesProtection = " + numMovesProtection);
+                String subLine = line.substring(line.indexOf(":") + 1).strip();
+                try {
+                    numMovesProtection = Integer.parseInt(subLine);
+//                    System.out.println("numMovesProtection = " + numMovesProtection);
+                } catch (Exception ex) {
+                    throw new InvalidConfigurationError("Parse num of move protection failed. Please check format! " +
+                            "For input string: \""+ subLine + "\"");
+                }
             } else {
                 throw new InvalidGameException("Unexpected EOF when parsing number of MovesProtection");
             }
+
 
             //TODO
             /**
@@ -87,7 +99,7 @@ public class Deserializer {
             line = getFirstNonEmptyLine(reader);
             if (line != null) {
                 this.centralPlace = parsePlace(line);
-                System.out.println(this.centralPlace.x() + "," + this.centralPlace.y());
+//                System.out.println(this.centralPlace.x() + "," + this.centralPlace.y());
             } else {
                 throw new InvalidGameException("Unexpected EOF when parsing central place");
             }
@@ -96,12 +108,19 @@ public class Deserializer {
             int numPlayers;
             line = getFirstNonEmptyLine(reader);
             if (line != null) {
+                String subLine = line.substring(line.indexOf(":") + 1).strip();
                 //TODO: get number of players here
-                numPlayers = Integer.parseInt(line.replaceAll("[^0-9]", ""));
-                System.out.println("numPlayers = " + numPlayers);
+                try {
+                    numPlayers = Integer.parseInt(subLine);
+//                    System.out.println("numPlayers = " + numPlayers);
+                } catch (Exception ex) {
+                    throw new InvalidConfigurationError("Parse num of players failed. Please check format! " +
+                            "For input string: \""+ subLine + "\"");
+                }
             } else {
                 throw new InvalidGameException("Unexpected EOF when parsing number of players");
             }
+
 
 
             // TODO:
@@ -109,31 +128,50 @@ public class Deserializer {
              * create an array of players {@link Player} with length of numPlayers, and name it by the read-in name
              * Also create an array representing scores {@link Deserializer#storedScores} of players with length of numPlayers
              */
-            Player[] players = new Player[numPlayers];
+            Player[] players = new Player[numPlayers];  // check 2 players??
             this.storedScores = new Integer[numPlayers];
-            String playerLine1 = getFirstNonEmptyLine(reader);
-            String playerLine2 = getFirstNonEmptyLine(reader);
-            if (playerLine1 != null && playerLine2 != null) {
-                String player1Name = playerLine1.substring(playerLine1.indexOf(":") + 1, playerLine1.indexOf(";"));
-                String player2Name = playerLine2.substring(playerLine2.indexOf(":") + 1, playerLine2.indexOf(";"));
-                this.storedScores[0] = Integer.parseInt(playerLine1.replaceAll("[^0-9]", ""));
-                this.storedScores[1] = Integer.parseInt(playerLine2.replaceAll("[^0-9]", ""));
-                players[0] = new RandomPlayer(player1Name);
-                players[1] = new RandomPlayer(player2Name);
-                System.out.println("player1Name = " + player1Name + " player2Name = " + player2Name);
-                System.out.println("player1Score = " + storedScores[0] + " player2Score = " + storedScores[1]);
+            String[] playerLines = new String[numPlayers];
+            for (int i = 0; i < numPlayers; i++) {
+                playerLines[i] = getFirstNonEmptyLine(reader);
+                if (playerLines[i] != null) {
+                    String[] segments = playerLines[i].split(";");
+                    if (segments.length != 2) {
+                        throw new InvalidConfigurationError("Parse player info failed. Please check format!");
+                    }
+                    if (!segments[0].contains("name:")) {
+                        throw new InvalidConfigurationError("Parse player name failed. Please check format!");
+                    }
+                    if (!segments[1].contains("score:")) {
+                        throw new InvalidConfigurationError("Parse player score failed. Please check format!");
+                    }
 
-            } else {
-                throw new InvalidGameException("Unexpected EOF when parsing number of players");
+                    String subNameLine = segments[0].substring(segments[0].indexOf(":") + 1).strip();
+                    String subLine = segments[1].substring(segments[1].indexOf(":") + 1).strip();
+                    players[i] = new RandomPlayer(subNameLine);
+                    try {
+                        this.storedScores[i] = Integer.parseInt(subLine);
+                    } catch (Exception ex) {
+                        throw new InvalidConfigurationError("Parse player score failed. Please check format! " +
+                                "For input string: \""+ subLine + "\"");
+                    }
+//                    System.out.printf("player %d name = %s\n", i, players[i].getName());
+//                    System.out.printf("player %d score = %d\n", i, storedScores[i]);
+                } else {
+                    throw new InvalidGameException("Unexpected EOF when parsing number of players");
+                }
             }
 
 
             // TODO
             /**
-             * try to initialize a configuration object  with the above read-in variables
+             * try to initialize a configuration object with the above read-in variables
              * if fail, throw InvalidConfigurationError exception
              * if success, assign to {@link Deserializer#configuration}
              */
+            this.configuration = new Configuration(players);
+            this.configuration.setSize(size);
+            this.configuration.setNumMovesProtection(numMovesProtection);
+
 
 
             // TODO
@@ -145,12 +183,21 @@ public class Deserializer {
              * - {@link Deserializer#parseMove(String)} ()}
              * - {@link Deserializer#parsePlace(String)} ()}
              */
+            while ((line = getFirstNonEmptyLine(reader)) != null) {
+                this.moveRecords.add(parseMoveRecord(line));
+            }
+//            for (var mov : moveRecords) {
+//                System.out.println(mov.getPlayer().getName() + " = " + mov.getMove().toString());
+//            }
 
         } catch (IOException ioe) {
             throw new InvalidGameException(ioe);
         }
 
     }
+
+    public Place getCentralPlace() {
+        return centralPlace;}
 
     public Configuration getLoadedConfiguration() {
         return configuration;
@@ -170,9 +217,23 @@ public class Deserializer {
      * @param moveRecordString a string of a move record
      * @return a {@link MoveRecord}
      */
-    private MoveRecord parseMoveRecord(String moveRecordString){
+    private MoveRecord parseMoveRecord(String moveRecordString) {
         // TODO
-        return null;
+        var segments = moveRecordString.split(";");
+        if (segments.length != 2) {
+            throw new InvalidConfigurationError("Parse move record failed. Please check format!");
+        }
+        if (!segments[0].contains("player:") || !segments[1].contains("move:")) {
+            throw new InvalidConfigurationError("Parse player move failed. Please check format!");
+        }
+        // player name is not important here
+        String moveLine = segments[1].substring(segments[1].indexOf(":") + 1).strip();
+        var move = parseMove(moveLine);
+        if (move != null) {
+            return new MoveRecord(this.configuration.getPlayers()[this.moveRecords.size() % 2], move);
+        } else {
+            throw new InvalidConfigurationError("One move should contain both source and target!");
+        }
     }
 
     /**
@@ -183,7 +244,13 @@ public class Deserializer {
      */
     private Move parseMove(String moveString) {
         // TODO
-        return null;
+        var segments = moveString.split("->");
+        if (segments.length != 2) {
+            return null;
+        }
+        Place source = parsePlace(segments[0].strip());
+        Place destination = parsePlace(segments[1].strip());
+        return new Move(source, destination);
     }
 
     /**
@@ -194,17 +261,19 @@ public class Deserializer {
      */
     private Place parsePlace(String placeString) {
         //TODO
-        String result = placeString.substring(placeString.indexOf("(") + 1, placeString.indexOf(")"));
-        var segments = result.split(",");
-        if (segments.length < 2 ) {
-            return null;
+        String subLine = placeString.substring(placeString.indexOf("(") + 1, placeString.indexOf(")"));
+        var segments = subLine.split(",");
+        if (segments.length != 2 ) {
+            throw new InvalidConfigurationError("Parse place record failed. Please check format! " +
+                    "Should be only 2 elements(x,y), but " + segments.length + " found");
         }
         try {
-            int x = Integer.parseInt(segments[0]);
-            int y = Integer.parseInt(segments[1]);
+            int x = Integer.parseInt(segments[0].strip());
+            int y = Integer.parseInt(segments[1].strip());
             return new Place(x, y);
         } catch (NumberFormatException e) {
-            throw new InvalidConfigurationError("Parse place record failed. Please check format!");
+            throw new InvalidConfigurationError("Parse place record failed. Please check format! " +
+                    "For input string: \"("+ subLine + ")\"");
         }
     }
 
