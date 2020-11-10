@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 
+
 /**
  * This class implements the main playing function of Jeson Mor
  * The necessary components have been already defined (e.g., topBar, title, buttons).
@@ -47,7 +48,8 @@ import java.io.IOException;
  *      - If one player runs out of time of each round {@link DurationTimer#getDefaultEachRound()}, then the player loses the game.
  * Hint:
  *      - You may find it useful to synchronize javafx UI-thread using {@link javafx.application.Platform#runLater}
- */ 
+ */
+
 
 public class GamePlayPane extends BasePane {
     @NotNull
@@ -171,7 +173,9 @@ public class GamePlayPane extends BasePane {
                 this.fxJesonMor.getCurPlayerName(),
                 ticksElapsed
         );
+
         centerContainer.getChildren().addAll(gamePlayCanvas, infoPane);
+
         parameterText.setText("Parameters:\n" + "\nSize of board: " + this.fxJesonMor.getConfiguration().getSize()
                 + "\nNum of protection moves: " + this.fxJesonMor.getConfiguration().getNumMovesProtection()
                 + "\nPlayer White" + (this.fxJesonMor.getConfiguration().isFirstPlayerHuman() ? "(human)" : "(computer)")
@@ -181,6 +185,14 @@ public class GamePlayPane extends BasePane {
 
         startButton.setDisable(false);
         restartButton.setDisable(true);
+    }
+
+    /**
+     * Helper method
+     * @return ticksElapsed
+     */
+    public IntegerProperty getTicksElapsed() {
+        return this.ticksElapsed;
     }
 
     /**
@@ -218,23 +230,21 @@ public class GamePlayPane extends BasePane {
         restartButton.setDisable(false);
         enterNextTurn.setValue(false);
         fxJesonMor.startCountdown();
-        this.fxJesonMor.addOnTickHandler(new Runnable() {
+        fxJesonMor.addOnTickHandler(new Runnable() {
             @Override
             public void run() {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
                         ticksElapsed.setValue(ticksElapsed.getValue() + 1);
-                        System.out.println(GameplayInfoPane.countdownFormat(ticksElapsed.getValue()));
+                        System.out.println("countdown: " + GameplayInfoPane.countdownFormat(ticksElapsed.getValue()));
                         if (ticksElapsed.getValue() == DurationTimer.getDefaultEachRound()) {  // time out
                             fxJesonMor.stopCountdown();
                             String loser = fxJesonMor.getCurrentPlayer().getName();
                             createLosePopup(loser);
-                        }
-                        else if (enterNextTurn.getValue()) {  // enter next round, if true
-                                ticksElapsed.setValue(0);
-                                enterNextTurn.setValue(false);
-                                nextRound();
+                        } else if (enterNextTurn.getValue()) {  // enter next round, if true
+                            enterNextTurn.setValue(false);
+                            nextRound();
                         }
                     }
                 });
@@ -311,9 +321,10 @@ public class GamePlayPane extends BasePane {
      */
     private void onCanvasPressed(MouseEvent event) {
         // TODO
-        audioManager.playSound(AudioManager.SoundRes.CLICK);
+        GraphicsContext gc = this.gamePlayCanvas.getGraphicsContext2D();
         this.sourceMove = new Place(toBoardCoordinate(event.getX()), toBoardCoordinate(event.getY()));
-        Renderer.drawRectangle(this.gamePlayCanvas.getGraphicsContext2D(), sourceMove.x(), sourceMove.y());
+        Renderer.drawRectangle(gc, sourceMove.x(), sourceMove.y());
+        audioManager.playSound(AudioManager.SoundRes.CLICK);
     }
 
     /**
@@ -325,8 +336,9 @@ public class GamePlayPane extends BasePane {
      */
     private void onCanvasDragged(MouseEvent event) {
         //TODO
+        GraphicsContext gc = this.gamePlayCanvas.getGraphicsContext2D();
+        Renderer.drawOval(gc, event.getX(), event.getY());
         audioManager.playSound(AudioManager.SoundRes.MOVE);
-        Renderer.drawOval(gamePlayCanvas.getGraphicsContext2D(), event.getX(), event.getY());
     }
 
     /**
@@ -342,6 +354,7 @@ public class GamePlayPane extends BasePane {
         this.destinationMove = new Place(toBoardCoordinate(event.getX()), toBoardCoordinate(event.getY()));
         this.lastMove = new Move(this.sourceMove, this.destinationMove);
         String validation = this.currentPlayer.validateMove(this.fxJesonMor, this.lastMove);
+
         if (validation == null) {
         audioManager.playSound(AudioManager.SoundRes.PLACE);
         this.movedPiece = this.fxJesonMor.getPiece(this.lastMove.getSource());
@@ -350,9 +363,9 @@ public class GamePlayPane extends BasePane {
         this.fxJesonMor.updateScore(this.currentPlayer, this.movedPiece, this.lastMove);
         this.fxJesonMor.renderBoard(this.gamePlayCanvas);
         updateHistoryField(this.lastMove);
+
         checkWinner();
         enterNextTurn.setValue(true);
-        System.out.printf("move: %d\n", this.fxJesonMor.getNumMoves());
         } else {
             showInvalidMoveMsg(validation);
         }
@@ -371,19 +384,18 @@ public class GamePlayPane extends BasePane {
         alert.setTitle("Congratulations!");
         alert.setHeaderText("Conformation");
         audioManager.playSound(AudioManager.SoundRes.WIN);
+
         var result = alert.showAndWait();
         if (result.orElse(null) == startNewGame) {
             onRestartButtonClick();
-        }
-        else if (result.orElse(null) == exportMoveRecords) {
+        } else if (result.orElse(null) == exportMoveRecords) {
             try {
                 Serializer.getInstance().saveToFile(this.fxJesonMor);
                 onRestartButtonClick();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else if (result.orElse(null) == returnToMainMenu) {
+        } else if (result.orElse(null) == returnToMainMenu) {
             doQuitToMenu();
         }
 
@@ -403,16 +415,14 @@ public class GamePlayPane extends BasePane {
         var result = alert.showAndWait();
         if (result.orElse(null) == startNewGame) {
             onRestartButtonClick();
-        }
-        else if (result.orElse(null) == exportMoveRecords) {
+        } else if (result.orElse(null) == exportMoveRecords) {
             try {
                 Serializer.getInstance().saveToFile(this.fxJesonMor);
                 onRestartButtonClick();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else if (result.orElse(null) == returnToMainMenu) {
+        } else if (result.orElse(null) == returnToMainMenu) {
             doQuitToMenu();
         }
     }
@@ -445,6 +455,7 @@ public class GamePlayPane extends BasePane {
                     if (piece == null) {
                         continue;
                     }
+
                     if (remainingPlayer == null) {
                         remainingPlayer = piece.getPlayer();
                     } else if (remainingPlayer != piece.getPlayer()) {

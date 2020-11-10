@@ -8,7 +8,6 @@ import castle.comp3021.assignment.gui.views.BigButton;
 import castle.comp3021.assignment.gui.views.BigVBox;
 import castle.comp3021.assignment.gui.views.NumberTextField;
 import castle.comp3021.assignment.gui.views.SideMenuVBox;
-import castle.comp3021.assignment.protocol.Configuration;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -95,12 +94,12 @@ public class SettingPane extends BasePane {
      *  - Text of {@link SettingPane#isHumanPlayer1Button}, {@link SettingPane#isHumanPlayer2Button},
      *            {@link SettingPane#toggleSoundButton} should be changed accordingly
      *  - You may use:
-     *      - {@link Configuration#isFirstPlayerHuman()},
-     *      - {@link Configuration#isSecondPlayerHuman()},
-     *      - {@link Configuration#setFirstPlayerHuman(boolean)}
-     *      - {@link Configuration#setSecondPlayerHuman(boolean)},
-     *      - {@link AudioManager#setEnabled(boolean)},
-     *      - {@link AudioManager#isEnabled()},
+     *      - Configuration#isFirstPlayerHuman()},
+     *      - Configuration#isSecondPlayerHuman()},
+     *      - Configuration#setFirstPlayerHuman(boolean)}
+     *      - Configuration#setSecondPlayerHuman(boolean)},
+     *      - AudioManager#setEnabled(boolean)},
+     *      - AudioManager#isEnabled()},
      */
     @Override
     void setCallbacks() {
@@ -127,6 +126,7 @@ public class SettingPane extends BasePane {
                 validNum = true;
                 int duration = durationField.getValue();
                 var validationMsg = validate(size, num, duration);
+
                 if (validationMsg.isEmpty()) {  // no warning, then modify the default values
                     globalConfiguration.setSize(size);
                     globalConfiguration.setNumMovesProtection(num);
@@ -148,11 +148,9 @@ public class SettingPane extends BasePane {
                 alert.setHeaderText("Validation failed");
                 if (validSize && !validNum) {
                     alert.setContentText("Incorrect format of Protection Moves");
-                }
-                else if (validNum) {
+                } else if (validNum) {
                     alert.setContentText("Incorrect format of Max Duration");
-                }
-                else {
+                } else {
                     alert.setContentText("Incorrect format of Size of Board");
                 }
                 alert.showAndWait();

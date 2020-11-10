@@ -48,7 +48,7 @@ public class Knight extends Piece {
                 new OutOfBoundaryRule(),
                 new OccupiedRule(),
                 new VacantRule(),
-                new BelongingRule(),
+                new BelongingRule(this.getPlayer()),
                 new NilMoveRule(),
                 new FirstNMovesProtectionRule(game.getConfiguration().getNumMovesProtection()),
                 new KnightMoveRule(),
@@ -75,6 +75,7 @@ public class Knight extends Piece {
         if (whiteKTile.isError() || blackKTile.isError()) {
             throw new IllegalStateException("Failed to load image");
         }
+
         if (this.getPlayer().getName().equals("White")) {
             return new Renderer.CellImage(whiteKTile);
         } else {

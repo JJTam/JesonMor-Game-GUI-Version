@@ -40,6 +40,7 @@ public class Serializer {
                 new FileChooser.ExtensionFilter("All Files", "*.*"),
                 new FileChooser.ExtensionFilter("Text Documents (*.txt)", "*.txt")
         );
+
         File file = fileChooser.showSaveDialog(new Stage());
         if (file != null) {
             BufferedWriter output = new BufferedWriter(new FileWriter(file));

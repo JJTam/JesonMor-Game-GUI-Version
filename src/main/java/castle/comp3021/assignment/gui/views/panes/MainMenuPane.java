@@ -6,7 +6,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 //import javafx.event.EventHandler;
 //import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import castle.comp3021.assignment.gui.views.BigButton;
@@ -34,7 +33,7 @@ public class MainMenuPane extends BasePane {
 
     /**
      * Add components to corresponding containers
-     * Connects all components into the {@link BorderPane}.
+     * Connects all components into the BorderPane.
      */
     @Override
     void connectComponents() {
@@ -63,8 +62,11 @@ public class MainMenuPane extends BasePane {
     void setCallbacks() {
         //TODO
         playButton.setOnAction(mouseEvent -> SceneManager.getInstance().showPane(GamePane.class));
+
         settingsButton.setOnAction(mouseEvent -> SceneManager.getInstance().showPane(SettingPane.class));
+
         validationButton.setOnAction(mouseEvent -> SceneManager.getInstance().showPane(ValidationPane.class));
+
         quitButton.setOnAction(mouseEvent -> Platform.exit());
     }
 

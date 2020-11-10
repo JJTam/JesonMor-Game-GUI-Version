@@ -1,5 +1,7 @@
 package castle.comp3021.assignment.gui;
 
+import castle.comp3021.assignment.gui.controllers.SceneManager;
+import castle.comp3021.assignment.gui.views.panes.GamePlayPane;
 import castle.comp3021.assignment.textversion.JesonMor;
 import castle.comp3021.assignment.protocol.*;
 import castle.comp3021.assignment.gui.controllers.Renderer;
@@ -114,8 +116,10 @@ public class FXJesonMor extends JesonMor {
                 } else {
                     scorePlayer2Property.setValue(player.getScore());
                 }
-               currentPlayerNameProperty.setValue(getCurrentPlayer().getName());
+                SceneManager.getInstance().<GamePlayPane>getPane(GamePlayPane.class).getTicksElapsed().setValue(0);  // reset timer countdown
+                currentPlayerNameProperty.setValue(getCurrentPlayer().getName());
             }
         });
     }
+
 }

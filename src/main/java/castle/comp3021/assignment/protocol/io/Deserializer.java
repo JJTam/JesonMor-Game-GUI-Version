@@ -59,6 +59,7 @@ public class Deserializer {
             String line;
             int size;
             line = getFirstNonEmptyLine(reader);
+
             if (line != null) {
                 // TODO: get size here
                 String subLine = line.substring(line.indexOf(":") + 1).strip();
@@ -128,7 +129,7 @@ public class Deserializer {
              * create an array of players {@link Player} with length of numPlayers, and name it by the read-in name
              * Also create an array representing scores {@link Deserializer#storedScores} of players with length of numPlayers
              */
-            Player[] players = new Player[numPlayers];  // check 2 players??
+            Player[] players = new Player[numPlayers];
             this.storedScores = new Integer[numPlayers];
             String[] playerLines = new String[numPlayers];
             for (int i = 0; i < numPlayers; i++) {
@@ -145,14 +146,14 @@ public class Deserializer {
                         throw new InvalidConfigurationError("Parse player score failed. Please check format!");
                     }
 
-                    String subNameLine = segments[0].substring(segments[0].indexOf(":") + 1).strip();
-                    String subLine = segments[1].substring(segments[1].indexOf(":") + 1).strip();
-                    players[i] = new RandomPlayer(subNameLine);
+                    String nameLine = segments[0].substring(segments[0].indexOf(":") + 1).strip();
+                    String scoreLine = segments[1].substring(segments[1].indexOf(":") + 1).strip();
+                    players[i] = new RandomPlayer(nameLine);
                     try {
-                        this.storedScores[i] = Integer.parseInt(subLine);
+                        this.storedScores[i] = Integer.parseInt(scoreLine);
                     } catch (Exception ex) {
                         throw new InvalidConfigurationError("Parse player score failed. Please check format! " +
-                                "For input string: \""+ subLine + "\"");
+                                "For input string: \""+ scoreLine + "\"");
                     }
 //                    System.out.printf("player %d name = %s\n", i, players[i].getName());
 //                    System.out.printf("player %d score = %d\n", i, storedScores[i]);
@@ -171,7 +172,6 @@ public class Deserializer {
             this.configuration = new Configuration(players);
             this.configuration.setSize(size);
             this.configuration.setNumMovesProtection(numMovesProtection);
-
 
 
             // TODO
@@ -223,14 +223,20 @@ public class Deserializer {
         if (segments.length != 2) {
             throw new InvalidConfigurationError("Parse move record failed. Please check format!");
         }
+
         if (!segments[0].contains("player:") || !segments[1].contains("move:")) {
             throw new InvalidConfigurationError("Parse player move failed. Please check format!");
         }
-        // player name is not important here
+
+        String nameLine = segments[0].substring(segments[0].indexOf(":") + 1).strip();
         String moveLine = segments[1].substring(segments[1].indexOf(":") + 1).strip();
         var move = parseMove(moveLine);
         if (move != null) {
-            return new MoveRecord(this.configuration.getPlayers()[this.moveRecords.size() % 2], move);
+            if (nameLine.equals(this.configuration.getPlayers()[0].getName())) {  // player 1
+                return new MoveRecord(this.configuration.getPlayers()[0], move);
+            } else {  // player 2
+                return new MoveRecord(this.configuration.getPlayers()[1], move);
+            }
         } else {
             throw new InvalidConfigurationError("One move should contain both source and target!");
         }
@@ -248,6 +254,7 @@ public class Deserializer {
         if (segments.length != 2) {
             return null;
         }
+
         Place source = parsePlace(segments[0].strip());
         Place destination = parsePlace(segments[1].strip());
         return new Move(source, destination);
@@ -267,12 +274,13 @@ public class Deserializer {
             throw new InvalidConfigurationError("Parse place record failed. Please check format! " +
                     "Should be only 2 elements(x,y), but " + segments.length + " found");
         }
+
         try {
             int x = Integer.parseInt(segments[0].strip());
             int y = Integer.parseInt(segments[1].strip());
             return new Place(x, y);
         } catch (NumberFormatException e) {
-            throw new InvalidConfigurationError("Parse place record failed. Please check format! " +
+            throw new InvalidConfigurationError("Parse move record failed. Please check format! " +
                     "For input string: \"("+ subLine + ")\"");
         }
     }

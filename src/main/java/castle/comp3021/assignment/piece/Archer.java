@@ -50,7 +50,7 @@ public class Archer extends Piece {
                 new OutOfBoundaryRule(),
                 new OccupiedRule(),
                 new VacantRule(),
-                new BelongingRule(),
+                new BelongingRule(this.getPlayer()),
                 new NilMoveRule(),
                 new FirstNMovesProtectionRule(game.getConfiguration().getNumMovesProtection()),
                 new ArcherMoveRule(),
@@ -77,6 +77,7 @@ public class Archer extends Piece {
         if (whiteATile.isError() || blackATile.isError()) {
             throw new IllegalStateException("Failed to load image");
         }
+
         if (this.getPlayer().getName().equals("White")) {
             return new Renderer.CellImage(whiteATile);
         } else {

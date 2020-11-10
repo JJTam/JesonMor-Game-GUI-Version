@@ -45,7 +45,8 @@ public class GamePane extends BasePane {
     private final NumberTextField numMovesProtectionField = new NumberTextField("");
 
     @NotNull
-    private final BorderPane numMovesProtectionBox = new BorderPane(null, null, numMovesProtectionField, null, new Label("Protection Moves:"));
+    private final BorderPane numMovesProtectionBox = new BorderPane(null, null,
+            numMovesProtectionField, null, new Label("Protection Moves:"));
 
 
     private FXJesonMor fxJesonMor = null;
@@ -113,11 +114,13 @@ public class GamePane extends BasePane {
                     } else {
                         player1 = new ConsolePlayer("White");
                     }
+
                     if (isHumanPlayer2Button.getText().contains("Human")) {
                         player2 = new ConsolePlayer("Black");
                     } else {
                         player2 = new RandomPlayer("Black");
                     }
+
                     Player[] players = new Player[]{player1, player2};
                     fxJesonMor = new FXJesonMor(new Configuration(size, players, num));
                     startGame(fxJesonMor);

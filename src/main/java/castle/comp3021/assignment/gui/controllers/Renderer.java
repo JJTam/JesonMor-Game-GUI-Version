@@ -58,7 +58,6 @@ public class Renderer {
         // TODO
         gc.setFill(Color.rgb(255, 255, 220));
         gc.fillOval(x , y, 12, 12);
-
     }
 
     /**

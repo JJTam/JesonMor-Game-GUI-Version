@@ -203,8 +203,7 @@ public class Configuration implements Cloneable {
         //TODO
         if (isHuman) {
             this.players[0] = new ConsolePlayer("White");
-        }
-        else {
+        } else {
             this.players[0] = new RandomPlayer("White");
         }
 
@@ -218,8 +217,7 @@ public class Configuration implements Cloneable {
         //TODO
         if (isHuman) {
             this.players[1] = new ConsolePlayer("Black");
-        }
-        else {
+        } else {
             this.players[1] = new RandomPlayer("Black");
         }
     }

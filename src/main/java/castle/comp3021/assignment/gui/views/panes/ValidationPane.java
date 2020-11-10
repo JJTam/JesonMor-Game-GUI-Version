@@ -1,19 +1,19 @@
 package castle.comp3021.assignment.gui.views.panes;
 
 import castle.comp3021.assignment.gui.FXJesonMor;
+import castle.comp3021.assignment.gui.controllers.AudioManager;
 import castle.comp3021.assignment.gui.controllers.SceneManager;
-import castle.comp3021.assignment.protocol.Configuration;
-import castle.comp3021.assignment.protocol.MoveRecord;
-import castle.comp3021.assignment.protocol.Place;
+import castle.comp3021.assignment.protocol.*;
 import castle.comp3021.assignment.protocol.exception.InvalidConfigurationError;
 import castle.comp3021.assignment.protocol.exception.InvalidGameException;
 import castle.comp3021.assignment.protocol.io.Deserializer;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.concurrent.Task;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -57,8 +57,8 @@ public class ValidationPane extends BasePane{
     private Place loadedCentralPlace;
     private ArrayList<MoveRecord> loadedMoveRecords = new ArrayList<>();
     private BooleanProperty isValid = new SimpleBooleanProperty(false);
-    private Deserializer deserializer;
 
+    private Timer timer = new Timer(true);
 
     public ValidationPane() {
         connectComponents();
@@ -93,6 +93,7 @@ public class ValidationPane extends BasePane{
 
         loadButton.setOnAction(mouseEvent -> {
             replayButton.setDisable(true);
+            this.timer.cancel();
             clean();
             if (loadFromFile()) {
                 validationButton.setDisable(false);
@@ -126,12 +127,12 @@ public class ValidationPane extends BasePane{
             return false;
         }
         try {
-            this.deserializer = new Deserializer(loadFile.toPath());
-            this.deserializer.parseGame();
-            this.loadedConfiguration = this.deserializer.getLoadedConfiguration();
-            this.loadedCentralPlace = this.deserializer.getCentralPlace();
-            this.storedScores = this.deserializer.getStoredScores();
-            this.loadedMoveRecords.addAll(this.deserializer.getMoveRecords());
+            Deserializer deserializer = new Deserializer(loadFile.toPath());
+            deserializer.parseGame();
+            this.loadedConfiguration = deserializer.getLoadedConfiguration();
+            this.loadedCentralPlace = deserializer.getCentralPlace();
+            this.storedScores = deserializer.getStoredScores();
+            this.loadedMoveRecords.addAll(deserializer.getMoveRecords());
             return true;
         } catch (FileNotFoundException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
@@ -150,27 +151,67 @@ public class ValidationPane extends BasePane{
      */
     private void onClickValidationButton() {
         //TODO
-        if (this.deserializer == null || this.loadedConfiguration == null || this.loadedCentralPlace == null) {  // nothing loaded
+        if (this.loadedConfiguration == null || this.storedScores == null) {  // nothing loaded
             showErrorMsg();
             return;
         }
         if (validateHistory()) {
             passValidationWindow();
-            isValid.setValue(true);
+            this.isValid.setValue(true);
             validationButton.setDisable(true);
             replayButton.setDisable(false);
-        };
+        }
     }
 
     /**
      * Display the history of recorded move.
      * Hint:
      *      - You can add a "next" button to render each move, or
-     *      - Or you can refer to {@link Task} for implementation.
+     *      - Or you can refer to {Task} for implementation.
      */
     private void onClickReplayButton() {
         //TODO
+        if (!this.isValid.getValue()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm");
+            alert.setHeaderText("Replay this game?");
+            var result = alert.showAndWait();
+            if (result.orElse(ButtonType.OK) == ButtonType.OK) {
+                this.isValid.setValue(true);
+                timer.cancel();
+            }
+        }
 
+        if (this.isValid.getValue()) {
+            this.loadedGame = new FXJesonMor(new Configuration(this.loadedConfiguration.getSize(),
+                    this.loadedConfiguration.getPlayers(), this.loadedConfiguration.getNumMovesProtection()));
+
+            this.timer = new Timer(true);
+            this.loadedGame.renderBoard(this.gamePlayCanvas);
+            ArrayList<MoveRecord> moveList = new ArrayList<>(this.loadedMoveRecords);
+
+            var task = new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!moveList.isEmpty()) {
+                                Move move = moveList.get(0).getMove();
+                                loadedGame.movePiece(move);
+                                loadedGame.renderBoard(gamePlayCanvas);
+                                AudioManager.getInstance().playSound(AudioManager.SoundRes.PLACE);
+                                moveList.remove(0);
+                            } else {
+                                timer.cancel();
+                            }
+                        }
+                    });
+                }
+            };
+            timer.scheduleAtFixedRate(task, 1000, 1000);
+            isValid.setValue(false);
+        }
     }
 
 
@@ -196,39 +237,49 @@ public class ValidationPane extends BasePane{
                         " but get " + this.loadedCentralPlace.toString());
             }
 
+            for (var move : this.loadedMoveRecords) {
+                String validation = move.getPlayer().validateMove(this.loadedGame, move.getMove());
+                if (validation != null) {
+                    System.out.println("Invalid: " + move.getPlayer().getName() + " = " + move.getMove().toString());
+                    throw new InvalidConfigurationError(validation);
+                }
+                this.loadedGame.movePiece(move.getMove());
+                this.loadedGame.updateNumMoves();
+            }
+
+            int counter = 0;
             int player1Scores = 0;
             int player2Scores = 0;
             int newPlayer1Scores = 0;
             int newPlayer2Scores = 0;
             for (var move : loadedMoveRecords) {
-                if (move.getPlayer().equals(this.loadedConfiguration.getPlayers()[0])) {  // player 1
+                if (counter % 2 == 0) {  // player 1
                     newPlayer1Scores = Math.abs(move.getMove().getSource().x() - move.getMove().getDestination().x());
                     newPlayer1Scores += Math.abs(move.getMove().getSource().y() - move.getMove().getDestination().y());
                     player1Scores += newPlayer1Scores;
-                }
-                if (move.getPlayer().equals(this.loadedConfiguration.getPlayers()[1])) {  // player 2
+                } else {  // player 2
                     newPlayer2Scores = Math.abs(move.getMove().getSource().x() - move.getMove().getDestination().x());
                     newPlayer2Scores += Math.abs(move.getMove().getSource().y() - move.getMove().getDestination().y());
                     player2Scores += newPlayer2Scores;
                 }
+                counter++;
             }
-
             if (player1Scores != this.storedScores[0]) {
                 throw new InvalidConfigurationError("Player 1's score was incorrect! Should be " + player1Scores
-                        + " but get " + this.storedScores[0]);
+                        + ", but get " + this.storedScores[0]);
             }
             if (player2Scores != this.storedScores[1]) {
                 throw new InvalidConfigurationError("Player 2's score was incorrect! Should be " + player2Scores
-                        + " but get " + this.storedScores[1]);
+                        + ", but get " + this.storedScores[1]);
             }
 
-
-
-
             return true;
+
         } catch (InvalidConfigurationError error) {
             showErrorConfiguration(error.getMessage());
         }
+
+        clean();
         return false;
     }
 
@@ -271,7 +322,7 @@ public class ValidationPane extends BasePane{
      */
     private void passValidationWindow() {
         //TODO
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Confirm");
         alert.setHeaderText("Pass validation!");
         alert.showAndWait();
@@ -288,7 +339,7 @@ public class ValidationPane extends BasePane{
         storedScores = null;
         loadedGame = null;
         loadedCentralPlace = null;
-        loadedMoveRecords = new ArrayList<>();
+        loadedMoveRecords.clear();
         isValid.setValue(false);
     }
 
@@ -300,6 +351,7 @@ public class ValidationPane extends BasePane{
     private void returnToMainMenu() {
         // TODO
         clean();
+        timer.cancel();
         validationButton.setDisable(true);
         replayButton.setDisable(true);
         SceneManager.getInstance().showPane(MainMenuPane.class);

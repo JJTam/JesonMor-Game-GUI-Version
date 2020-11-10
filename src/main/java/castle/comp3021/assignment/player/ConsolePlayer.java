@@ -1,7 +1,6 @@
 package castle.comp3021.assignment.player;
 
 import castle.comp3021.assignment.protocol.Game;
-import castle.comp3021.assignment.piece.*;
 import castle.comp3021.assignment.protocol.Color;
 import castle.comp3021.assignment.protocol.Move;
 import castle.comp3021.assignment.protocol.Place;

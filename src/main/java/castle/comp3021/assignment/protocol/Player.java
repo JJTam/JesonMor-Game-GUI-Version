@@ -86,14 +86,13 @@ public abstract class Player implements Cloneable {
     public abstract @NotNull Move nextMove(Game game, Move[] availableMoves);
 
 
-
     public String validateMove(Game game, Move move) {
         var rules = new Rule[] {
                 new OutOfBoundaryRule(),
                 new OccupiedRule(),
                 new VacantRule(),
                 new NilMoveRule(),
-                new BelongingRule(),
+                new BelongingRule(this),
                 new FirstNMovesProtectionRule(game.getConfiguration().getNumMovesProtection()),
                 new ArcherMoveRule(),
                 new KnightMoveRule(),
